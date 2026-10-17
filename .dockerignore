@@ -1,0 +1,12 @@
+*.xlsm
+*.pptx
+*.bas
+tests/
+.venv/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.git/
+*.md
+RTD_cal.bat
+RTD_cal_stop.bat

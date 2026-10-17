@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Node (only ever used transiently for Playwright verification)
+node_modules/
+
+# Local Claude Code session state (not project source)
+.claude/
+
+# Env/secrets (none currently present, but never commit if added)
+.env
+.env.*
+
+# Scratch verification scripts/screenshots (should always be cleaned up,
+# but ignore defensively in case any are left behind)
+_pw_*.mjs
+_screenshot*.png
+
+# OS cruft
+Thumbs.db
+.DS_Store

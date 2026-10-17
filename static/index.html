@@ -1,0 +1,255 @@
+<title>RTD Reactor Calculator</title>
+<link rel="stylesheet" href="/static/css/styles.css" />
+
+<header class="topbar">
+  <h1>RTD Reactor Calculator</h1>
+  <nav>
+    <a href="/" class="active">Calculator</a>
+    <a href="/help">Help</a>
+  </nav>
+</header>
+
+<main class="layout">
+  <!-- LEFT: inputs -->
+  <aside class="panel" id="inputs">
+    <h2>Inputs</h2>
+    <div id="error-box" class="error-box hidden"></div>
+
+    <fieldset>
+      <legend>Reactor &amp; flow (shared)</legend>
+      <div class="field-row" data-var-id="L">
+        <label for="in-L">Length (L)</label>
+        <input type="number" id="in-L" step="any" required />
+        <span class="units">cm</span>
+      </div>
+      <div class="field-row" data-var-id="a">
+        <label for="in-a">Radius (a)</label>
+        <input type="number" id="in-a" step="any" required />
+        <span class="units">cm</span>
+      </div>
+      <div class="field-row" data-var-id="Q">
+        <label for="in-Q">Flow rate (Q)</label>
+        <input type="number" id="in-Q" step="any" required />
+        <span class="units">cm³/min</span>
+      </div>
+      <div class="field-row" data-var-id="mu">
+        <label for="in-mu">Viscosity (µ)</label>
+        <input type="number" id="in-mu" step="any" required />
+        <span class="units">g/(cm·s)</span>
+      </div>
+      <div class="field-row" data-var-id="rho">
+        <label for="in-rho">Density (ρ)</label>
+        <input type="number" id="in-rho" step="any" required />
+        <span class="units">g/cm³</span>
+      </div>
+      <div class="field-row" data-var-id="D">
+        <label for="in-D">Diffusivity (D)</label>
+        <input type="number" id="in-D" step="any" required />
+        <span class="units">cm²/s</span>
+      </div>
+    </fieldset>
+
+    <div class="field-row" id="calc-type-row">
+      <label for="in-calc-type">Calculation type</label>
+      <select id="in-calc-type">
+        <option value="microbio" selected>Microbiological</option>
+        <option value="chemical">Chemical</option>
+      </select>
+    </div>
+
+    <fieldset id="microbio-fieldset">
+      <legend>Microbiological</legend>
+      <div class="field-row" data-var-id="k">
+        <label for="in-k">Rate constant (k)</label>
+        <input type="number" id="in-k" step="any" required />
+        <span class="units">cm²/mJ</span>
+      </div>
+      <div class="field-row" data-var-id="Eavg">
+        <label for="in-Eavg">Avg. fluence rate (E'avg)</label>
+        <input type="number" id="in-Eavg" step="any" required />
+        <span class="units">mW/cm²</span>
+      </div>
+      <div class="field-row" data-var-id="measured_C_C0">
+        <label for="in-measured">Measured C/C0 (optional)</label>
+        <input type="number" id="in-measured" step="any" />
+        <span class="units">&nbsp;</span>
+      </div>
+    </fieldset>
+
+    <fieldset id="chemical-fieldset" class="hidden">
+      <legend>Chemical (actinometry)</legend>
+      <div class="field-row" data-var-id="wavelength">
+        <label for="in-wavelength">Wavelength (λ)</label>
+        <input type="number" id="in-wavelength" step="any" required />
+        <span class="units">nm</span>
+      </div>
+      <div class="field-row" data-var-id="sigma">
+        <label for="in-sigma">Absorption cross-section (σ)</label>
+        <input type="number" id="in-sigma" step="any" required />
+        <span class="units">cm²/molec</span>
+      </div>
+      <div class="field-row" data-var-id="phi">
+        <label for="in-phi">Quantum yield (Φ)</label>
+        <input type="number" id="in-phi" step="any" required />
+        <span class="units">molec/photon</span>
+      </div>
+      <div class="field-row" data-var-id="Eprime">
+        <label for="in-eprime">Base fluence rate (E')</label>
+        <input type="number" id="in-eprime" step="any" required />
+        <span class="units">mW/cm²</span>
+      </div>
+      <div class="field-row" data-var-id="molecular_weight">
+        <label for="in-molecular-weight">Molecular weight (MW)</label>
+        <input type="number" id="in-molecular-weight" step="any" required />
+        <span class="units">g/mol</span>
+      </div>
+    </fieldset>
+
+    <details class="advanced">
+      <summary id="backsolve-summary">Calculate k from measured C/C0</summary>
+      <div class="field-row">
+        <label for="in-backsolve-values">C/C0 values (comma or space-separated; paste from Excel works)</label>
+      </div>
+      <textarea id="in-backsolve-values" class="value-list" rows="2"></textarea>
+      <div id="backsolve-eavg-group">
+        <div class="field-row">
+          <label for="in-backsolve-eavg-values">Eavg for each C/C0 above (mW/cm², same order)</label>
+        </div>
+        <textarea id="in-backsolve-eavg-values" class="value-list" rows="2"></textarea>
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary id="sweep-values-summary">Sweep Eavg values</summary>
+      <div class="field-row">
+        <label for="in-sweep-values">Comma or space-separated list (paste from Excel works)</label>
+      </div>
+      <textarea id="in-sweep-values" class="value-list" rows="2"></textarea>
+    </details>
+
+    <details class="advanced">
+      <summary>Advanced: solver brackets</summary>
+      <fieldset>
+        <legend>k solver bracket</legend>
+        <div class="field-row" data-var-id="k_min">
+          <label for="in-k-min">Lower bound</label>
+          <input type="number" id="in-k-min" step="any" />
+          <span class="units">cm²/mJ</span>
+        </div>
+        <div class="field-row" data-var-id="k_max">
+          <label for="in-k-max">Upper bound</label>
+          <input type="number" id="in-k-max" step="any" />
+          <span class="units">cm²/mJ</span>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Eavg solver bracket</legend>
+        <div class="field-row" data-var-id="eavg_min">
+          <label for="in-eavg-min">Lower bound</label>
+          <input type="number" id="in-eavg-min" step="any" />
+          <span class="units">mW/cm²</span>
+        </div>
+        <div class="field-row" data-var-id="eavg_max">
+          <label for="in-eavg-max">Upper bound</label>
+          <input type="number" id="in-eavg-max" step="any" />
+          <span class="units">mW/cm²</span>
+        </div>
+      </fieldset>
+    </details>
+  </aside>
+
+  <!-- CENTER: results + tables -->
+  <section class="panel" id="results">
+    <h2>Results</h2>
+    <div class="results-grid" id="headline-results">
+      <div class="result-item">
+        <span class="result-label">C/C0 (reactor)</span>
+        <span class="result-value" id="res-c-c0">—</span>
+      </div>
+      <div class="result-item" id="result-item-est-k">
+        <span class="result-label" id="res-est-k-label">Estimated k</span>
+        <span class="result-value" id="res-est-k">—</span>
+      </div>
+      <div class="result-item" id="result-item-residual">
+        <span class="result-label">Residual</span>
+        <span class="result-value" id="res-residual">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="q">Mean residence time (q)</span>
+        <span class="result-value" id="res-q">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="Uavg">Uavg</span>
+        <span class="result-value" id="res-uavg">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="U0">U0</span>
+        <span class="result-value" id="res-u0">—</span>
+      </div>
+      <hr class="divider" />
+      <div class="result-item">
+        <span class="result-label" data-var-id="flow_regime">Flow regime (Re)</span>
+        <span class="result-value" id="res-flow-regime">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="diffusion_regime">Diffusion regime (Pe)</span>
+        <span class="result-value" id="res-diffusion-regime">—</span>
+      </div>
+      <hr class="divider" />
+    </div>
+
+    <div class="section-header">
+      <h2 id="backsolve-section-title">Calculated k (cm²/mJ) from C/C0 and Eavg values</h2>
+      <button type="button" id="backsolve-calc-btn" class="btn-primary btn-small">Calculate</button>
+    </div>
+    <details class="table-collapse" id="backsolve-table-details">
+      <summary>Show table</summary>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="backsolve-table">
+          <thead id="backsolve-table-head">
+            <tr>
+              <th>C/C0</th>
+              <th>Eavg</th>
+              <th>k</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="section-header">
+      <h2 id="sweep-section-title">Simulated C/C0 depending on avg. irradiance Eavg <span class="heading-detail" id="sweep-heading-detail"></span></h2>
+      <button type="button" id="sweep-calc-btn" class="btn-primary btn-small">Calculate</button>
+    </div>
+    <details class="table-collapse" id="sweep-table-details">
+      <summary>Show table</summary>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="sweep-table">
+          <thead>
+            <tr>
+              <th>Eavg</th>
+              <th>Davg</th>
+              <th>C/C0 (RTD)</th>
+              <th>log10 inact.</th>
+              <th>C/C0 (well-mixed)</th>
+              <th>% rel. diff.</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <!-- RIGHT: chart -->
+  <section class="panel" id="chart">
+    <h2>RTD vs. well-mixed survival</h2>
+    <div id="chart-container"></div>
+  </section>
+</main>
+
+<script src="/static/js/vendor/plotly.min.js"></script>
+<script src="/static/js/tooltips.js"></script>
+<script src="/static/js/chart.js"></script>
+<script src="/static/js/calculator.js"></script>

@@ -1,0 +1,42 @@
+{
+  "_note": "Exact cached cell values read directly from the live .xlsm (openpyxl, data_only=True) on the Calculations sheet. Kept for documentation/comparison only -- NOT a pass/fail regression target, since the legacy VBA Integrate_RTD has a documented trapezoidal off-by-one bug (see rtd_engine.py) that the new scipy-based engine deliberately does not reproduce. Use scipy_reference_values.json for actual regression testing.",
+  "reactor_inputs": {
+    "L": 19.7,
+    "a": 1.1,
+    "Q": 1200,
+    "mu": 0.00018,
+    "rho": 0.001204
+  },
+  "derived": {
+    "Uavg": 5.261320432789928,
+    "U0": 10.522640865579856,
+    "L_over_U0": 1.8721536020904976,
+    "Re": 77.42325312429978,
+    "q": 3.7443072041809953
+  },
+  "headline": {
+    "k": 0.87,
+    "Eavg": 1.6,
+    "C_C0_reactor": 0.018065252557633336,
+    "measured_C_C0": 0.00202,
+    "estimated_k": 1.4829704455235044,
+    "residual": 1.8723160175038167e-11
+  },
+  "sweep": {
+    "k": 1.83,
+    "rows": [
+      {"Eavg": 0.1,  "C_C0_rtd": 0.4396839961447428,   "log10_inactivation": 0.3568593417774231, "Davg": 0.37443072041809955, "C_C0_well_mixed": 0.5039852796579786,   "pct_relative_difference": 0.127585638129893},
+      {"Eavg": 0.25, "C_C0_rtd": 0.18837397332680075,  "log10_inactivation": 0.7249791016565829, "Davg": 0.9360768010452488,  "C_C0_well_mixed": 0.18032030343876002,  "pct_relative_difference": -0.044663134070068305},
+      {"Eavg": 0.5,  "C_C0_rtd": 0.056598270320402766, "log10_inactivation": 1.2471968409280332, "Davg": 1.8721536020904976,  "C_C0_well_mixed": 0.03251541183224649,  "pct_relative_difference": -0.7406598019549794},
+      {"Eavg": 0.75, "C_C0_rtd": 0.01890312390668486,  "log10_inactivation": 1.7234664189311928, "Davg": 2.8082304031357466,  "C_C0_well_mixed": 0.005863188928026931, "pct_relative_difference": -2.2240345891508055},
+      {"Eavg": 1.0,  "C_C0_rtd": 0.00666510509215953,  "log10_inactivation": 2.176192998450399,  "Davg": 3.7443072041809953,  "C_C0_well_mixed": 0.0010572520066205948,"pct_relative_difference": -5.304178237943386},
+      {"Eavg": 1.25, "C_C0_rtd": 0.0024308637282965825,"log10_inactivation": 2.6142393865732187, "Davg": 4.680384005226244,   "C_C0_well_mixed": 0.00019064400264506333,"pct_relative_difference": -11.75080094086311},
+      {"Eavg": 1.5,  "C_C0_rtd": 0.0009075077452391432,"log10_inactivation": 3.042149659735082,  "Davg": 5.616460806271493,   "C_C0_well_mixed": 3.43769844057376e-05, "pct_relative_difference": -25.398701367409004},
+      {"Eavg": 1.75, "C_C0_rtd": 0.0003446671211338042,"log10_inactivation": 3.462600143314427,  "Davg": 6.552537607316742,   "C_C0_well_mixed": 6.198868259352128e-06,"pct_relative_difference": -54.601620604504824},
+      {"Eavg": 2.0,  "C_C0_rtd": 0.00013264386941150974,"log10_inactivation": 3.877312817617415, "Davg": 7.4886144083619905,  "C_C0_well_mixed": 1.1177818055032742e-06,"pct_relative_difference": -117.66705000783911},
+      {"Eavg": 2.25, "C_C0_rtd": 5.158621045329797e-05,"log10_inactivation": 4.287466374426943,  "Davg": 8.42469120940724,    "C_C0_well_mixed": 2.0155875434667554e-07,"pct_relative_difference": -254.93634283218032},
+      {"Eavg": 2.5,  "C_C0_rtd": 2.023458914842115e-05,"log10_inactivation": 4.693905609280076,  "Davg": 9.360768010452489,   "C_C0_well_mixed": 3.634513574453091e-08,"pct_relative_difference": -555.734449711499},
+      {"Eavg": 2.75, "C_C0_rtd": 7.993592737045188e-06,"log10_inactivation": 5.097257982240484,  "Davg": 10.296844811497737,  "C_C0_well_mixed": 6.553765905976763e-09,"pct_relative_difference": -1218.6945773963885}
+    ]
+  }
+}

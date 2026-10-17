@@ -1,0 +1,136 @@
+{
+  "_note": "High-precision reference values computed with THIS repo's scipy-based engine (app.core.*). Used as the actual pass/fail regression target, unlike spreadsheet_known_values.json which documents the legacy (buggy) tool for comparison only.",
+  "reactor_inputs": {
+    "L": 19.7,
+    "a": 1.1,
+    "Q": 1200,
+    "mu": 0.00018,
+    "rho": 0.001204,
+    "D": 2.77e-07
+  },
+  "derived": {
+    "Uavg": 5.261320432789928,
+    "U0": 10.522640865579856,
+    "Re": 77.42325312429978,
+    "Pe": 374180550.6352403,
+    "q": 3.7443072041809953,
+    "L_over_U0": 1.8721536020904976,
+    "flow_regime": "Laminar",
+    "diffusion_regime": "Advection-dominated (diffusion negligible) \u2014 RTD model assumptions hold"
+  },
+  "headline": {
+    "k": 0.87,
+    "Eavg": 1.6,
+    "C_C0_reactor": 0.017331593201909225,
+    "measured_C_C0": 0.00202,
+    "estimated_k": 1.4658967058283396,
+    "residual": -1.5916087892087205e-16
+  },
+  "sweep": {
+    "k": 1.83,
+    "rows": [
+      {
+        "Eavg": 0.1,
+        "C_C0_rtd": 0.43264221325415486,
+        "log10_inactivation": 0.3638711083621805,
+        "Davg": 0.37443072041809955,
+        "C_C0_well_mixed": 0.5039852796579786,
+        "pct_relative_difference": 0.14155783766589278
+      },
+      {
+        "Eavg": 0.25,
+        "C_C0_rtd": 0.18416011677925453,
+        "log10_inactivation": 0.7348044183202251,
+        "Davg": 0.9360768010452488,
+        "C_C0_well_mixed": 0.18032030343876002,
+        "pct_relative_difference": -0.02129440372086878
+      },
+      {
+        "Eavg": 0.5,
+        "C_C0_rtd": 0.05480763109200454,
+        "log10_inactivation": 1.2611589686978024,
+        "Davg": 1.8721536020904976,
+        "C_C0_well_mixed": 0.03251541183224649,
+        "pct_relative_difference": -0.685589325294973
+      },
+      {
+        "Eavg": 0.75,
+        "C_C0_rtd": 0.018142208780902447,
+        "log10_inactivation": 1.741309839494163,
+        "Davg": 2.8082304031357466,
+        "C_C0_well_mixed": 0.005863188928026931,
+        "pct_relative_difference": -2.094256215108461
+      },
+      {
+        "Eavg": 1.0,
+        "C_C0_rtd": 0.006341761608466942,
+        "log10_inactivation": 2.1977900874545058,
+        "Davg": 3.7443072041809953,
+        "C_C0_well_mixed": 0.0010572520066205948,
+        "pct_relative_difference": -4.998344357593398
+      },
+      {
+        "Eavg": 1.25,
+        "C_C0_rtd": 0.0022934621314148283,
+        "log10_inactivation": 2.639508426342268,
+        "Davg": 4.680384005226244,
+        "C_C0_well_mixed": 0.00019064400264506333,
+        "pct_relative_difference": -11.030077524572038
+      },
+      {
+        "Eavg": 1.5,
+        "C_C0_rtd": 0.0008491203344755583,
+        "log10_inactivation": 3.0710307586424492,
+        "Davg": 5.616460806271493,
+        "C_C0_well_mixed": 3.43769844057376e-05,
+        "pct_relative_difference": -23.7002565569375
+      },
+      {
+        "Eavg": 1.75,
+        "C_C0_rtd": 0.00031985599820560007,
+        "log10_inactivation": 3.4950455006188657,
+        "Davg": 6.552537607316742,
+        "C_C0_well_mixed": 6.198868259352128e-06,
+        "pct_relative_difference": -50.59909596772584
+      },
+      {
+        "Eavg": 2.0,
+        "C_C0_rtd": 0.00012210064646743816,
+        "log10_inactivation": 3.9132820366571006,
+        "Davg": 7.4886144083619905,
+        "C_C0_well_mixed": 1.1177818055032742e-06,
+        "pct_relative_difference": -108.234777186647
+      },
+      {
+        "Eavg": 2.25,
+        "C_C0_rtd": 4.7105982374913476e-05,
+        "log10_inactivation": 4.326923934751596,
+        "Davg": 8.42469120940724,
+        "C_C0_well_mixed": 2.0155875434667554e-07,
+        "pct_relative_difference": -232.70844162835255
+      },
+      {
+        "Eavg": 2.5,
+        "C_C0_rtd": 1.833076593037458e-05,
+        "log10_inactivation": 4.7368193881536795,
+        "Davg": 9.360768010452489,
+        "C_C0_well_mixed": 3.634513574453091e-08,
+        "pct_relative_difference": -503.35266108843547
+      },
+      {
+        "Eavg": 2.75,
+        "C_C0_rtd": 7.184584628414603e-06,
+        "log10_inactivation": 5.1435983352266295,
+        "Davg": 10.296844811497737,
+        "C_C0_well_mixed": 6.553765905976763e-09,
+        "pct_relative_difference": -1095.252861558964
+      }
+    ]
+  },
+  "find_e_round_trip_check": {
+    "input_C_C0": 0.017331593201909225,
+    "k": 0.87,
+    "recovered_Eavg": 1.6000000000020322,
+    "expected_Eavg": 1.6
+  }
+}

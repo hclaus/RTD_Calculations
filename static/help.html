@@ -1,0 +1,252 @@
+<title>RTD Reactor Calculator — Help</title>
+<link rel="stylesheet" href="/static/css/styles.css" />
+
+<header class="topbar">
+  <h1>RTD Reactor Calculator</h1>
+  <nav>
+    <a href="/">Calculator</a>
+    <a href="/help" class="active">Help</a>
+  </nav>
+</header>
+
+<main class="help-content">
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      This tool validates UV disinfection performance for a laminar-flow cylindrical
+      reactor, following the methodology and reactor design ("BLUCIFRR") described in
+      <em>UV-C Dose-Response Behavior of Airborne (Aerosolized) Challenge Agents I:
+      Theoretical Foundation</em> (Blatchley, Jongewaard, Claus, Hernandez, Shorno &amp;
+      Bowers). A "Microbiological / Chemical" toggle on the calculator page switches
+      between two applications of the same underlying reactor model -- see
+      <a href="#chemical-actinometry">Chemical actinometry</a> below for the chemical
+      mode. In microbiological mode, it supports two workflows:
+    </p>
+    <ul>
+      <li>
+        <strong>Forward prediction</strong> — given a reactor's geometry, flow rate, and
+        a target organism's inactivation rate constant (k) and the average UV fluence
+        rate (Eavg), predict the overall survival ratio C/C0 the reactor will deliver.
+      </li>
+      <li>
+        <strong>Back-solving from a bioassay</strong> — given a <em>measured</em> C/C0
+        from a real bioassay run, back-solve for the rate constant k that is consistent
+        with that measurement under the reactor's actual (non-ideal) flow pattern. This
+        is the core of UV reactor validation: a single bioassay already reflects the
+        true dose non-uniformity, so back-solving through the correct flow model gives
+        a validated k rather than one biased by assuming everyone gets the same dose.
+      </li>
+    </ul>
+  </section>
+
+  <section id="reactor-geometry">
+    <h2>Reactor hydraulics &amp; laminar flow</h2>
+    <p>
+      For steady, fully-developed laminar flow in a circular tube, the velocity profile
+      is parabolic: <code>U(r) = U0·(1 − r²/a²)</code>, where <code>U0</code> is the
+      centerline (maximum) velocity and <code>a</code> is the tube radius. The
+      cross-section-averaged (mean) velocity is exactly half the centerline velocity:
+      <code>Uavg = U0/2</code>, so <code>U0 = 2·Uavg</code>. Given the volumetric flow
+      rate <code>Q</code>, <code>Uavg = Q /(60·π·a²)</code> (the 60 converts
+      cm³/min to cm³/s).
+    </p>
+    <p>
+      <strong>Is the flow actually laminar?</strong> The <strong>Reynolds number</strong>
+      <code>Re = ρ·Uavg·(2a)/µ</code> compares inertial to viscous forces. This tool
+      reports a plain-language verdict using standard pipe-flow thresholds:
+      <code>Re &lt; 2300</code> → <em>Laminar</em>,
+      <code>2300 ≤ Re ≤ 4000</code> → <em>Transitional (uncertain)</em>,
+      <code>Re &gt; 4000</code> → <em>Turbulent</em>. The whole RTD model below assumes
+      laminar flow, so a Transitional/Turbulent verdict means the model's assumptions
+      may not hold for that scenario.
+    </p>
+  </section>
+
+  <section id="rtd-theory">
+    <h2>Residence Time Distribution (RTD) theory</h2>
+    <p>
+      Because the velocity profile is parabolic, fluid near the tube's centerline moves
+      roughly twice as fast as the cross-sectional average, while fluid near the wall
+      moves much slower. A single "residence time" doesn't exist — instead, different
+      fluid elements experience a <em>distribution</em> of residence times. For a
+      non-diffusing tracer in laminar flow, Taylor (1953) derived the exact closed-form
+      residence time distribution density function:
+    </p>
+    <pre>E(t) = L / (U0·t²)   for t &gt; L/U0
+E(t) = 0              for t ≤ L/U0</pre>
+    <p>
+      where <code>L/U0</code> is the <em>minimum</em> possible residence time
+      (experienced by fluid exactly at the centerline). This tool integrates
+      <code>E(t)</code> from <code>L/U0</code> out to <code>100·L/U0</code> — a
+      practical stand-in for infinity, since <code>E(t)</code> decays rapidly and the
+      contribution beyond that point is negligible.
+    </p>
+    <p>
+      <strong>Why is it valid to ignore diffusion?</strong> Taylor's derivation assumes
+      the tracer doesn't diffuse radially between streamlines. Whether that's reasonable
+      depends on the <strong>Peclet number</strong>, <code>Pe = Uavg·L/D</code>, which
+      compares advective transport to diffusive transport (<code>D</code> is the
+      challenge agent's diffusivity in air). Per Bowers &amp; Miller (2025), for
+      <code>Pe ≳ 10⁵</code> advection dominates and diffusion can be neglected. This
+      matters a great deal for aerosolized challenge agents: a ≥1 µm bioaerosol
+      diffuses roughly <strong>5 orders of magnitude slower</strong> than a typical
+      gas-phase actinometer molecule, so the zero-diffusion assumption is comfortably
+      satisfied for bioaerosols (typical reactor Peclet numbers run well above
+      10⁸) but needs more care for gas-phase chemistry. This tool reports a
+      plain-language verdict: <code>Pe ≥ 1e5</code> → <em>Advection-dominated
+      (diffusion negligible) — RTD model assumptions hold</em>; otherwise a caution that
+      diffusion may be significant.
+    </p>
+  </section>
+
+  <section id="chick-watson">
+    <h2>Chick-Watson first-order inactivation kinetics</h2>
+    <p>
+      Within any single fluid element (treated as its own small batch reactor), microbial
+      inactivation is modeled with first-order (Chick-Watson) kinetics: the surviving
+      fraction decays exponentially with the UV dose received,
+    </p>
+    <pre>(C/C0)_batch(t) = exp(-k·Eavg·t)</pre>
+    <p>
+      where <code>k</code> is the organism-specific inactivation rate constant
+      (cm²/mJ) and <code>Eavg·t</code> is the dose (fluence, mJ/cm²) accumulated over
+      residence time <code>t</code> at average fluence rate <code>Eavg</code>
+      (mW/cm²).
+    </p>
+  </section>
+
+  <section id="rtd-vs-well-mixed">
+    <h2>Why RTD-based dosing differs from a naive average dose</h2>
+    <p>
+      Combining the per-element kinetics above with the RTD density function via the
+      <strong>Segregated Flow Model</strong> gives the reactor's true overall survival
+      ratio as a weighted average over every possible residence time:
+    </p>
+    <pre>(C/C0)_reactor = ∫₀^∞ (C/C0)_batch(t) · E(t) · dt</pre>
+    <p>
+      This is exactly what the "C/C0 (reactor)" headline result and the simulated
+      C/C0 table compute. Compare this to the naive assumption that every fluid
+      element receives the <em>same</em>, average dose: <code>Davg = Eavg·q</code>
+      (using the mean residence time <code>q = L/Uavg</code>), giving a
+      "well-mixed" survival estimate <code>C/C0_well-mixed = exp(-k·Davg)</code>.
+    </p>
+    <p>
+      The sweep chart plots both curves against <code>Davg</code> on a log-scale y-axis.
+      The well-mixed curve is always optimistic (predicts <em>more</em> disinfection
+      than actually occurs) because it ignores the slow-moving fluid near the tube wall
+      that receives far less dose than average — and that under-dosed fluid dominates
+      the population of survivors. This gap is the entire reason RTD-based dose
+      accounting matters for reactor validation, and it widens rapidly at higher doses
+      (see the "% relative difference" column).
+    </p>
+  </section>
+
+  <section id="bisection-solve">
+    <h2>The solver: back-solving k or Eavg from a measurement</h2>
+    <p>
+      Given a measured bioassay survival ratio R = C/C0, the tool numerically solves
+      <code>(C/C0)_reactor(k) = R</code> for <code>k</code> (holding Eavg fixed), or
+      <code>(C/C0)_reactor(Eavg) = R</code> for <code>Eavg</code> (holding k fixed).
+      Internally this uses a bracketed root-finder (Brent's method) over a search
+      range — the "solver bracket" — that must contain the true answer: the tool needs
+      one bracket endpoint where the predicted C/C0 is above R and one where it's below.
+    </p>
+    <p>
+      The default brackets (k: 0.001–50 cm²/mJ; Eavg: 0.0001–3 mW/cm²) match the
+      original spreadsheet tool's defaults. If your measured C/C0 falls outside what's
+      reachable within the current bracket, you'll see a clear error rather than a
+      silently wrong answer — widen the relevant bracket in the Advanced settings panel
+      and recalculate.
+    </p>
+  </section>
+
+  <section id="glossary">
+    <h2>Variable glossary</h2>
+    <p>Grouped by category; click a row's "methodology" link to jump back to the relevant section above.</p>
+    <table class="glossary" id="glossary-table">
+      <thead>
+        <tr><th>Symbol</th><th>Label</th><th>Units</th><th>Description</th><th>Methodology</th></tr>
+      </thead>
+      <tbody><!-- populated by help.js --></tbody>
+    </table>
+  </section>
+
+  <section id="chemical-actinometry">
+    <h2>Chemical actinometry</h2>
+    <p>
+      Switching the calculator's mode to "Chemical" reuses this exact same
+      reactor-geometry and RTD-integration engine, with a photochemically-derived rate
+      constant <code>kp</code> in place of the microbial rate constant k. This models
+      a chemical actinometer (e.g. CBr4 photolysis) run through the same non-ideal
+      laminar-flow reactor, per the homogeneous gas-phase photolysis kinetics derived
+      in slide 15 of the Theoretical Foundation deck:
+    </p>
+    <pre>kp = σ · Φ · J
+J  = 1 / (1000 · Up)
+Up = h · c / λ</pre>
+    <p>
+      where <code>σ</code> is the actinometer compound's molar absorption cross-section
+      (cm²/molec) at the chosen wavelength, <code>Φ</code> is its quantum yield
+      (molecules converted per photon absorbed), <code>Up</code> is the energy of a
+      single photon at wavelength <code>λ</code> (computed from Planck's constant
+      <code>h</code> and the speed of light <code>c</code>), and <code>J</code> converts
+      a fluence rate (mW/cm²) into an actinic photon flux. Once <code>kp</code> is
+      known, it plugs directly into the same <code>(C/C0)_batch(t) = exp(-kp·E'·t)</code>
+      kinetics and RTD integration used for microbiological predictions above — the
+      reactor doesn't know or care whether the "rate constant" represents a microbe or
+      a molecule.
+    </p>
+    <p>
+      <strong>Why back-solve E' instead of kp?</strong> In chemical actinometry, σ and Φ
+      are known literature properties of the compound, so <code>kp</code> is a known,
+      fixed quantity rather than something to validate. What's actually uncertain is the
+      reactor's true fluence rate — so the roles are flipped relative to the
+      microbiological workflow: the "Calculate E' from measured C/C0" table holds kp
+      fixed and back-solves the fluence rate <code>E'</code> each actinometer sample
+      must have experienced to produce its measured conversion, using the same
+      bisection solver described above.
+    </p>
+    <p>
+      <strong>A note on σ:</strong> three different literature values for CBr4's
+      absorption cross-section were found while researching this tool (1.28×10⁻¹⁷,
+      2.85×10⁻¹⁸, and 1.32×10⁻¹⁷ cm²/molec, from different sources). The default here
+      matches the original spreadsheet's own value — treat it as a starting point to
+      replace with the literature value appropriate to your compound and wavelength,
+      not a settled constant.
+    </p>
+    <p>
+      <strong>Diffusivity from molecular weight.</strong> The Peclet number (see
+      <a href="#rtd-theory">RTD theory</a> above) needs a diffusivity, but chemical
+      actinometer molecules diffuse roughly 5 orders of magnitude faster than the
+      bioaerosols the microbiological mode's diffusivity default assumes — reusing that
+      default here would be physically wrong. Instead, chemical mode estimates
+      diffusivity in air from the compound's <strong>molecular weight</strong> alone,
+      via a power-law fit <code>D = a·MW<sup>b</sup></code> to four gas-phase compounds
+      from slide 10 of the Theoretical Foundation deck (Benzaldehyde, 1,2,4-Trimethylbenzene,
+      Styrene, and CBr4; MW 104–320 g/mol, D 0.068–0.073 cm²/s). A plain
+      1/√MW (Graham's-law-style) scaling was tried first and rejected — it overshoots
+      by &gt;60% at the light end of this range, because for a trace compound diffusing
+      through <em>air</em>, the relevant reduced molar mass is dominated by air's own
+      molecular weight (~29 g/mol) once the compound is much heavier than that, making
+      diffusivity far less sensitive to the compound's own weight than 1/√MW implies.
+      The fitted power law matches all four reference compounds within 2%. This estimate
+      updates the same shared "Diffusivity" input used by the Peclet number calculation
+      above — editing molecular weight recomputes it automatically, and the field
+      remains editable if you have a literature diffusivity value you'd rather use
+      directly.
+    </p>
+  </section>
+
+  <section id="citations">
+    <h2>Citations</h2>
+    <ul class="citation-list">
+      <li>Blatchley, E.R. III, Jongewaard, M., Claus, H., Hernandez, M.T., Shorno, S.A., &amp; Bowers, C.A. <em>UV-C Dose-Response Behavior of Airborne (Aerosolized) Challenge Agents I: Theoretical Foundation.</em></li>
+      <li>Taylor, G.I. (1953). Dispersion of soluble matter in solvent flowing slowly through a tube. <em>Proc. R. Soc. Lond. A.</em></li>
+      <li>Bowers, C.A. &amp; Miller (2025).</li>
+      <li>Bolton, J.R. &amp; Linden, K.G. (2003). Standardization of methods for fluence (UV dose) determination in bench-scale UV experiments.</li>
+      <li>Blatchley, E.R. III (2023). <em>Photochemical Reactors: Theory, Methods, and Applications of Ultraviolet Radiation.</em> Wiley, New York.</li>
+    </ul>
+  </section>
+</main>
+
+<script src="/static/js/help.js"></script>

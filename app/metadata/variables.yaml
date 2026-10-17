@@ -1,0 +1,300 @@
+# Single source of truth for every variable's label/units/tooltip/description.
+# Consumed by GET /api/variables, and from there by both the calculator's
+# input tooltips (js/tooltips.js) and the Help page glossary (js/help.js).
+# Do not duplicate this text anywhere else.
+
+- id: L
+  symbol: "L"
+  label: "Reactor length (irradiated zone)"
+  units: "cm"
+  category: shared
+  default: 19.7
+  tooltip: "Length of the irradiated zone, measured along the flow direction."
+  description: >
+    Length of the quartz-tube irradiated zone, measured along the direction
+    of flow. Combined with the velocity profile, this sets the minimum and
+    mean residence times fluid elements spend under UV exposure.
+  methodology_section_anchor: reactor-geometry
+
+- id: a
+  symbol: "a"
+  label: "Reactor radius"
+  units: "cm"
+  category: shared
+  default: 1.1
+  tooltip: "Internal radius of the reactor/quartz tube."
+  description: "Internal radius of the cylindrical reactor/quartz tube."
+  methodology_section_anchor: reactor-geometry
+
+- id: Q
+  symbol: "Q"
+  label: "Volumetric flow rate"
+  units: "cm^3/min"
+  category: shared
+  default: 1200
+  tooltip: "Volumetric flow rate of fluid (e.g. air) through the reactor."
+  description: "Volumetric flow rate of air (or other fluid) through the reactor."
+  methodology_section_anchor: reactor-geometry
+
+- id: mu
+  symbol: "µ"
+  label: "Fluid viscosity"
+  units: "g/(cm·s)"
+  category: shared
+  default: 0.00018
+  tooltip: "Dynamic viscosity of the fluid (air at room temperature by default). Used for the Reynolds-number check."
+  description: "Dynamic viscosity, used only for the Reynolds-number flow-regime check."
+  methodology_section_anchor: reactor-geometry
+
+- id: rho
+  symbol: "ρ"
+  label: "Fluid density"
+  units: "g/cm^3"
+  category: shared
+  default: 0.001204
+  tooltip: "Density of the fluid (air at room temperature by default). Used for the Reynolds-number check."
+  description: "Fluid density, used only for the Reynolds-number flow-regime check."
+  methodology_section_anchor: reactor-geometry
+
+- id: D
+  symbol: "𝒩"
+  label: "Challenge-agent diffusivity in air"
+  units: "cm^2/s"
+  category: shared
+  default: 2.77e-7
+  tooltip: "Diffusivity of the aerosol/molecule in air. Default is the ≥1 µm bioaerosol upper bound from Blatchley et al."
+  description: >
+    Diffusivity of the challenge agent (aerosol particle or gas molecule) in
+    air. Used only to compute the Peclet number and the resulting
+    advection-vs-diffusion verdict. The default (2.77e-7 cm^2/s) is the
+    upper-bound value for a ≥1 µm bioaerosol worked out on slide 9 of
+    "UV-C Dose-Response Behavior of Airborne (Aerosolized) Challenge Agents
+    I: Theoretical Foundation" (Blatchley et al.) -- gas-phase actinometer
+    molecules are roughly 5 orders of magnitude more diffusive than
+    bioaerosols.
+  methodology_section_anchor: rtd-theory
+
+- id: k
+  symbol: "k"
+  label: "Inactivation rate constant"
+  units: "cm^2/mJ"
+  category: microbiological
+  default: 0.87
+  tooltip: "Organism-specific UV susceptibility constant (Chick-Watson first-order rate constant)."
+  description: >
+    First-order UV inactivation rate constant for the target organism.
+    Note: the legacy spreadsheet mislabeled this unit as cm^2/mW; the
+    correct unit is cm^2/mJ, since k multiplies a dose (fluence, mJ/cm^2),
+    not a fluence rate.
+  methodology_section_anchor: chick-watson
+
+- id: Eavg
+  symbol: "E'avg"
+  label: "Average fluence rate"
+  units: "mW/cm^2"
+  category: microbiological
+  default: 1.6
+  tooltip: "Average UV fluence rate within the reactor's irradiated zone."
+  description: "Spatially-averaged UV fluence rate within the reactor's irradiated zone."
+  methodology_section_anchor: rtd-theory
+
+- id: measured_C_C0
+  symbol: "C/C0 (measured)"
+  label: "Measured survival ratio (bioassay)"
+  units: "dimensionless"
+  category: microbiological
+  default: 0.00202
+  tooltip: "Survival ratio measured from a real bioassay run; used to back-solve the validated rate constant k."
+  description: >
+    Bioassay-measured overall survival ratio (C/C0) for the reactor. Feeds
+    the solver that back-calculates the validated rate constant consistent
+    with real-world RTD (dose non-uniformity) effects. Optional -- leave
+    blank to skip the back-solve and just see the forward-predicted C/C0.
+  methodology_section_anchor: bisection-solve
+
+- id: k_min
+  symbol: "k_min"
+  label: "k solver lower bound"
+  units: "cm^2/mJ"
+  category: solver_settings
+  default: 0.001
+  tooltip: "Lower bracket bound for the k solver (legacy spreadsheet default)."
+  description: "Lower bound of the search bracket used when back-solving for k."
+  methodology_section_anchor: bisection-solve
+
+- id: k_max
+  symbol: "k_max"
+  label: "k solver upper bound"
+  units: "cm^2/mJ"
+  category: solver_settings
+  default: 50.0
+  tooltip: "Upper bracket bound for the k solver (legacy spreadsheet default)."
+  description: "Upper bound of the search bracket used when back-solving for k."
+  methodology_section_anchor: bisection-solve
+
+- id: eavg_min
+  symbol: "Eavg_min"
+  label: "Eavg solver lower bound"
+  units: "mW/cm^2"
+  category: solver_settings
+  default: 0.0001
+  tooltip: "Lower bracket bound for the Eavg solver (legacy spreadsheet default)."
+  description: "Lower bound of the search bracket used when back-solving for Eavg."
+  methodology_section_anchor: bisection-solve
+
+- id: eavg_max
+  symbol: "Eavg_max"
+  label: "Eavg solver upper bound"
+  units: "mW/cm^2"
+  category: solver_settings
+  default: 3.0
+  tooltip: "Upper bracket bound for the Eavg solver (legacy spreadsheet default)."
+  description: "Upper bound of the search bracket used when back-solving for Eavg."
+  methodology_section_anchor: bisection-solve
+
+- id: Uavg
+  symbol: "Uavg"
+  label: "Mean velocity"
+  units: "cm/s"
+  category: derived
+  tooltip: "Average velocity in tube."
+  description: "Mean (cross-section-averaged) fluid velocity through the reactor."
+  methodology_section_anchor: reactor-geometry
+
+- id: U0
+  symbol: "U0"
+  label: "Centerline velocity"
+  units: "cm/s"
+  category: derived
+  tooltip: "Max velocity in tube."
+  description: "Centerline (maximum) velocity for a laminar, parabolic velocity profile; U0 = 2×Uavg."
+  methodology_section_anchor: reactor-geometry
+
+- id: Re
+  symbol: "Re"
+  label: "Reynolds number"
+  units: "dimensionless"
+  category: derived
+  tooltip: "Classifies the flow as laminar, transitional, or turbulent."
+  description: "Reynolds number using the tube diameter as the length scale; used to verify the flow is actually laminar, as the RTD model assumes."
+  methodology_section_anchor: reactor-geometry
+
+- id: Pe
+  symbol: "Pe"
+  label: "Peclet number"
+  units: "dimensionless"
+  category: derived
+  tooltip: "Compares advective to diffusive transport; large Pe justifies ignoring radial diffusion."
+  description: "Peclet number Pe = Uavg·L/D; large values indicate advection dominates diffusion, justifying the zero-diffusion RTD model."
+  methodology_section_anchor: rtd-theory
+
+- id: q
+  symbol: "q"
+  label: "Mean residence time"
+  units: "s"
+  category: derived
+  tooltip: "Average time fluid elements spend in the irradiated zone, L/Uavg."
+  description: "Mean residence time in the irradiated zone, q = L/Uavg; used as the time basis for the naive well-mixed average-dose comparison."
+  methodology_section_anchor: rtd-vs-well-mixed
+
+- id: L_over_U0
+  symbol: "L/U0"
+  label: "Minimum residence time"
+  units: "s"
+  category: derived
+  tooltip: "Shortest possible residence time (centerline streamline), and the RTD integral's lower bound."
+  description: "Minimum residence time L/U0, experienced by fluid at the tube centerline; the lower integration bound of the RTD model."
+  methodology_section_anchor: rtd-theory
+
+- id: flow_regime
+  symbol: "Flow regime"
+  label: "Flow regime verdict"
+  units: ""
+  category: derived
+  tooltip: "Laminar / Transitional / Turbulent, from the Reynolds number."
+  description: "Plain-language flow-regime verdict derived from the Reynolds number (Re<2300 Laminar, 2300-4000 Transitional, >4000 Turbulent)."
+  methodology_section_anchor: reactor-geometry
+
+- id: diffusion_regime
+  symbol: "Diffusion regime"
+  label: "Diffusion regime verdict"
+  units: ""
+  category: derived
+  tooltip: "Whether advection dominates diffusion (Pe≥ 10^5), validating the RTD model's zero-diffusion assumption."
+  description: "Plain-language verdict on whether the Peclet number supports ignoring radial diffusion (Pe ≥ 1e5, per Bowers & Miller 2025)."
+  methodology_section_anchor: rtd-theory
+
+- id: wavelength
+  symbol: "λ"
+  label: "Wavelength"
+  units: "nm"
+  category: chemical
+  default: 222.0
+  tooltip: "UV wavelength used to compute photon energy and the actinic photon flux."
+  description: >
+    UV wavelength, used to compute the photon energy
+    Up = h·c/λ and from it the actinic photon-flux conversion constant J
+    that feeds kp = σ·Φ·J. Default (222 nm) matches the far-UVC source used
+    throughout this project.
+  methodology_section_anchor: chemical-actinometry
+
+- id: sigma
+  symbol: "σ"
+  label: "Molar absorption cross-section"
+  units: "cm^2/molec"
+  category: chemical
+  default: 1.32e-17
+  tooltip: "Absorption cross-section of the actinometer compound at the given wavelength."
+  description: >
+    Molar absorption cross-section of the actinometer compound (e.g. CBr4)
+    at the chosen wavelength. Note: literature values for this quantity
+    vary by source -- the default here (1.32e-17 cm^2/molec) matches the
+    original spreadsheet's own value; treat it as a starting point to
+    replace with your own literature value, not a settled constant.
+  methodology_section_anchor: chemical-actinometry
+
+- id: phi
+  symbol: "Φ"
+  label: "Quantum yield"
+  units: "molec/photon"
+  category: chemical
+  default: 1.0
+  tooltip: "Fraction of absorbed photons that produce a reaction (molecules converted per photon absorbed)."
+  description: "Quantum yield of the actinometer's photolysis reaction -- molecules converted per photon absorbed."
+  methodology_section_anchor: chemical-actinometry
+
+- id: Eprime
+  symbol: "E'"
+  label: "Base fluence rate"
+  units: "mW/cm^2"
+  category: chemical
+  default: 2.8
+  tooltip: "Average UV fluence rate used for the forward chemical-conversion prediction."
+  description: "Average UV fluence rate within the reactor's irradiated zone, for the chemical (actinometry) calculation -- the chemical-mode analogue of Eavg."
+  methodology_section_anchor: chemical-actinometry
+
+- id: molecular_weight
+  symbol: "MW"
+  label: "Molecular weight"
+  units: "g/mol"
+  category: chemical
+  default: 319.62
+  tooltip: "Used to estimate the compound's diffusivity in air, which feeds the Peclet number."
+  description: >
+    Actinometer compound molecular weight. Estimates the diffusivity in air
+    (and from it the Peclet number / diffusion-regime verdict) via a
+    power-law fit to known gas-phase compounds, since diffusivity in air
+    for a trace compound depends only weakly on its own molecular weight
+    once it's much heavier than air -- see the Chemical actinometry
+    section below for why. Default (319.62 g/mol) is CBr4, matching sigma's
+    default compound.
+  methodology_section_anchor: chemical-actinometry
+
+- id: kp
+  symbol: "kp"
+  label: "Photochemical rate constant"
+  units: "cm^2/mJ"
+  category: chemical
+  tooltip: "Derived rate constant kp = σ·Φ·J -- the chemical-mode analogue of the microbial rate constant k."
+  description: "Pseudo-first-order photochemical rate constant, kp = σ·Φ·J, computed from sigma, phi, and the photon flux at the chosen wavelength. Plugs into the same RTD engine as the microbiological k."
+  methodology_section_anchor: chemical-actinometry
