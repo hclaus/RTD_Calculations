@@ -95,7 +95,12 @@ header.topbar nav a:hover {
 
 main.layout {
   display: grid;
-  grid-template-columns: 320px 1fr 1fr;
+  /* minmax(0, 1fr), not bare 1fr: without the 0 floor, a grid track won't
+     shrink below its content's min-content width -- a wide table (with
+     white-space:nowrap cells) would then force the middle column wider
+     than its fair share, squeezing the chart column's width (and, via the
+     fixed aspect-ratio, its height) every time a table expanded. */
+  grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
   padding: 1rem;
   align-items: start;
@@ -183,6 +188,16 @@ legend {
 
 #calc-type-row label {
   font-weight: 600;
+}
+
+#save-load-row {
+  margin-bottom: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#save-load-row .btn-small {
+  flex: 1 1 auto;
 }
 
 /* Doubles as a hover tooltip (native title) AND a click-through link to the
@@ -351,8 +366,15 @@ table.data-table th:first-child, table.data-table td:first-child {
   text-align: left;
 }
 
+/* Fixed aspect ratio (not min-height) so Plotly's autosize always renders
+   into a stable box derived from the column's width alone -- without this,
+   the chart would creep taller every time a sibling table expanded, since
+   its height had no upper bound and Plotly's resize observer would lock in
+   whatever size the container happened to have at that moment. */
 #chart-container {
-  min-height: 420px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 480px;
 }
 
 .error-box {

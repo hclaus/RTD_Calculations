@@ -24,6 +24,19 @@
   const DEFAULT_BACKSOLVE_EAVG = [1.6, 1.6, 1.6, 1.6, 1.6];
   const DEFAULT_BACKSOLVE_CC0_CHEMICAL = [0.95, 0.90, 0.85, 0.80];
 
+  // Every left-column input, saved to / loaded from a local JSON file as a
+  // flat {elementId: value} map. Covers both modes' fields plus the
+  // calc-type selector itself, so loading a file restores mode and all.
+  const SAVE_LOAD_FIELD_IDS = [
+    "in-calc-type",
+    "in-L", "in-a", "in-Q", "in-mu", "in-rho", "in-D",
+    "in-k", "in-Eavg", "in-measured",
+    "in-wavelength", "in-sigma", "in-phi", "in-eprime", "in-molecular-weight",
+    "in-backsolve-values", "in-backsolve-eavg-values", "in-sweep-values",
+    "in-k-min", "in-k-max", "in-eavg-min", "in-eavg-max",
+  ];
+  const SAVE_FILE_SCHEMA = "rtd-calculator-inputs-v1";
+
   function $(id) { return document.getElementById(id); }
 
   function getMode() { return $("in-calc-type").value; }
@@ -221,6 +234,50 @@
     $("error-box").classList.add("hidden");
   }
 
+  // Saves every left-column input to a downloaded local JSON file -- a
+  // named scenario the user can reload later (this app is stateless
+  // server-side, so "save a scenario" lives entirely in the browser/file
+  // system, not a database).
+  function saveInputsToFile() {
+    const values = {};
+    for (const id of SAVE_LOAD_FIELD_IDS) {
+      const el = $(id);
+      if (el) values[id] = el.value;
+    }
+    const payload = { schema: SAVE_FILE_SCHEMA, saved_at: new Date().toISOString(), values };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rtd-calculator-inputs.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function loadInputsFromFile(file) {
+    let payload;
+    try {
+      payload = JSON.parse(await file.text());
+    } catch {
+      showError("That file isn't valid JSON.");
+      return;
+    }
+    if (!payload || payload.schema !== SAVE_FILE_SCHEMA || typeof payload.values !== "object") {
+      showError("That file doesn't look like a saved RTD Calculator inputs file.");
+      return;
+    }
+    for (const [id, value] of Object.entries(payload.values)) {
+      const el = $(id);
+      if (el) el.value = value;
+    }
+    clearError();
+    await applyModeVisibility();
+    calculateHeadlineAndSweep(true);
+    calculateBackSolveK(true);
+  }
+
   function regimeBadgeClass(text) {
     if (text.startsWith("Laminar")) return "laminar";
     if (text.startsWith("Transitional")) return "transitional";
@@ -403,6 +460,13 @@
     attachPasteNormalizer("in-backsolve-eavg-values");
     $("sweep-calc-btn").addEventListener("click", () => calculateHeadlineAndSweep(true));
     $("backsolve-calc-btn").addEventListener("click", () => calculateBackSolveK(true));
+    $("save-inputs-btn").addEventListener("click", saveInputsToFile);
+    $("load-inputs-btn").addEventListener("click", () => $("load-inputs-file").click());
+    $("load-inputs-file").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) loadInputsFromFile(file);
+      event.target.value = ""; // reset so re-selecting the same file still fires 'change'
+    });
     $("in-calc-type").addEventListener("change", async () => {
       await applyModeVisibility();
       calculateHeadlineAndSweep(true);
