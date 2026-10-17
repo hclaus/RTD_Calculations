@@ -1,5 +1,8 @@
 # RTD Reactor Calculator
 
+A web implementation to calculate dose distribution (and RTD) in a segregated
+flow reactor under laminar flow.
+
 A web app reimplementing the calculations from `RTD for Laminar Flow Reactor
 calculations V2.xlsm` -- a laminar-flow UV reactor validation tool based on
 the Residence Time Distribution (RTD) methodology described in *UV-C
