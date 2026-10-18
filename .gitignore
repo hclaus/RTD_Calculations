@@ -23,3 +23,13 @@ _screenshot*.png
 # OS cruft
 Thumbs.db
 .DS_Store
+
+# Standalone theoretical investigations -- deliberately kept out of the
+# app and out of git; local reference material only.
+/ununiform fluence rate distribution.md
+/RTD calculation review.md
+/diffusion effects.md
+/Diffusion correction.md
+/scripts/
+# Word exports generated from the gitignored investigation docs
+/*.docx
