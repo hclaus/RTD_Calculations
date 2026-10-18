@@ -60,7 +60,7 @@ def test_back_solve_eavg_returns_eavg_for_each_value():
     kp_value = kp_resp.json()["kp"]
 
     ri = {"L": 19.7, "a": 1.1, "Q": 1200, "mu": 0.00018, "rho": 0.001204, "D": 2.77e-7}
-    body = {"reactor": ri, "k": kp_value, "c_c0_values": [0.95, 0.90, 0.85, 0.80]}
+    body = {"reactor": ri, "k": kp_value, "c_c0_values": [0.97, 0.94, 0.91, 0.88]}
     resp = client.post("/api/chemical/back-solve-eavg", json=body)
     assert resp.status_code == 200
     data = resp.json()
@@ -76,7 +76,7 @@ def test_back_solve_eavg_default_values():
     resp = client.post("/api/chemical/back-solve-eavg", json={"reactor": ri, "k": 0.0147})
     assert resp.status_code == 200
     data = resp.json()
-    assert [row["C_C0"] for row in data["rows"]] == [0.95, 0.90, 0.85, 0.80]
+    assert [row["C_C0"] for row in data["rows"]] == [0.97, 0.94, 0.91, 0.88]
 
 
 def test_back_solve_eavg_one_unreachable_value_does_not_fail_whole_batch():
@@ -95,16 +95,19 @@ def test_back_solve_eavg_one_unreachable_value_does_not_fail_whole_batch():
 def test_back_solve_eavg_round_trips_with_find_e_directly():
     """Cross-check the API against calling find_e directly, to confirm the
     route isn't silently using the wrong solver."""
-    from app.core.reactor import u0, uavg
-    from app.core.rtd_engine import integrate_rtd
+    from app.core.diffusion import theta_from
+    from app.core.reactor import mean_residence_time, u0, uavg
+    from app.core.rtd_engine import integrate_rtd_corrected
     from app.core.solvers import find_e
 
     L, a, Q = 19.7, 1.1, 1200
     Uavg, U0 = uavg(Q, a), u0(Q, a)
     kp_value = 0.0147
     true_eavg = 1.5
-    c_c0 = integrate_rtd(L, U0, kp_value, true_eavg)
-    expected_eavg = find_e(c_c0, L, U0, kp_value)
+    # the route derives theta from the reactor's D, so reproduce that here
+    theta = theta_from(2.77e-7, mean_residence_time(L, Uavg), a)
+    c_c0 = integrate_rtd_corrected(L, U0, kp_value, true_eavg, theta)
+    expected_eavg = find_e(c_c0, L, U0, kp_value, theta=theta)
 
     ri = {"L": L, "a": a, "Q": Q, "mu": 0.00018, "rho": 0.001204, "D": 2.77e-7}
     resp = client.post(

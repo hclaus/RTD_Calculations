@@ -298,3 +298,42 @@
   tooltip: "Derived rate constant kp = σ·Φ·J -- the chemical-mode analogue of the microbial rate constant k."
   description: "Pseudo-first-order photochemical rate constant, kp = σ·Φ·J, computed from sigma, phi, and the photon flux at the chosen wavelength. Plugs into the same RTD engine as the microbiological k."
   methodology_section_anchor: chemical-actinometry
+
+- id: theta
+  symbol: "θ"
+  label: "Radial mixing parameter"
+  units: "dimensionless"
+  category: derived
+  tooltip: "θ = D·τ/a² — how far molecules diffuse across the tube during one transit."
+  description: >
+    Dimensionless radial diffusion time, θ = D·τ/a². Measures how much
+    cross-stream mixing occurs during one mean residence time. It depends
+    only on the compound's diffusivity, the flow rate and the geometry —
+    never on k or Eavg — so it stays constant while back-solving. Together
+    with the Damköhler number it indexes the diffusion-correction table.
+  methodology_section_anchor: diffusion-correction
+
+- id: Da
+  symbol: "Da"
+  label: "Damköhler number"
+  units: "dimensionless"
+  category: derived
+  tooltip: "Da = k·Eavg·τ — how far the reaction proceeds during one transit."
+  description: >
+    Dimensionless reaction progress during one mean residence time,
+    Da = k·Ē·τ. Because it contains k and Ē, the diffusion correction must
+    be evaluated inside the solver when back-solving either of them.
+  methodology_section_anchor: diffusion-correction
+
+- id: correction_factor
+  symbol: "F"
+  label: "Diffusion correction factor"
+  units: "dimensionless"
+  category: derived
+  tooltip: "Multiplier on the zero-diffusion result, interpolated from the Monte Carlo table."
+  description: >
+    F(θ, Da) = (C/C0 with diffusion) / (C/C0 zero-diffusion, flux-weighted).
+    Interpolated from a precomputed Monte Carlo table. F = 1 means diffusion
+    has no effect (the aerosol case); smaller values mean diffusion narrows
+    the residence time distribution and increases predicted inactivation.
+  methodology_section_anchor: diffusion-correction

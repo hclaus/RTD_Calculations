@@ -37,10 +37,12 @@ function renderSweepChart(sweepResponse) {
   };
 
   const layout = {
-    margin: { t: 10, r: 10, b: 60, l: 70 },
-    xaxis: { title: { text: "Eavg (mW/cm²)" } },
+    // generous bottom margin so the x-axis title clears the horizontal
+    // legend in the narrow right-hand column
+    margin: { t: 10, r: 10, b: 95, l: 70 },
+    xaxis: { title: { text: "Eavg (mW/cm²)", standoff: 12 } },
     yaxis: { title: { text: "C/C0" }, type: "log" },
-    legend: { orientation: "h", y: -0.25 },
+    legend: { orientation: "h", y: -0.38, yanchor: "top" },
     autosize: true,
   };
 

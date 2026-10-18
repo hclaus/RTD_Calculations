@@ -21,6 +21,10 @@ class ReactorDerived(BaseModel):
     L_over_U0: float
     flow_regime: str
     diffusion_regime: str
+    # theta = D*tau/a^2 -- radial mixing during one transit. Depends only on
+    # the reactor and the compound's diffusivity, never on k or Eavg, so it
+    # is constant while back-solving.
+    theta: float
 
 
 class SolverSettings(BaseModel):
@@ -51,6 +55,11 @@ class HeadlineResponse(BaseModel):
     C_C0_reactor: float
     estimated_k: float | None = None
     residual: float | None = None
+    # Diffusion correction diagnostics (this build only)
+    Da: float
+    correction_factor: float
+    C_C0_uncorrected: float
+    correction_warning: str | None = None
 
 
 class SweepRequest(BaseModel):
@@ -68,6 +77,7 @@ class SweepRow(BaseModel):
     Davg: float
     C_C0_well_mixed: float
     pct_relative_difference: float
+    correction_factor: float = 1.0
 
 
 class TrendlineFit(BaseModel):

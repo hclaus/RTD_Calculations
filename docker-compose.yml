@@ -1,6 +1,10 @@
 services:
-  rtd-calculator:
+  # CORRECTED model build: flux-weighted RTD + molecular-diffusion
+  # correction. Runs on 8001 so it can sit alongside the legacy build
+  # (port 8000) for side-by-side comparison.
+  rtd-calculator-corrected:
     build: .
+    container_name: rtd-calculator-corrected
     ports:
-      - "8000:8000"
+      - "8001:8000"
     restart: unless-stopped

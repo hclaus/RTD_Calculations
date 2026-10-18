@@ -1,0 +1,198 @@
+{
+  "_note": "Reference values for the CORRECTED build: flux-weighted laminar RTD (tau^2/(2t^3)) with the tabulated molecular-diffusion correction. Not comparable with the legacy area-weighted fixtures.",
+  "reactor_inputs": {
+    "L": 19.7,
+    "a": 1.1,
+    "Q": 1200.0,
+    "mu": 0.00018,
+    "rho": 0.001204,
+    "D": 2.77e-07
+  },
+  "derived": {
+    "Uavg": 5.261320432789928,
+    "U0": 10.522640865579856,
+    "tau": 3.7443072041809953,
+    "Re": 77.42325312429978,
+    "Pe": 374180550.6352403,
+    "theta_aerosol": 8.571678475687071e-07
+  },
+  "microbiological": {
+    "k": 0.87,
+    "Eavg": 1.6,
+    "theta": 8.571678475687071e-07,
+    "Da": 5.212075628219946,
+    "correction_factor": 1.0,
+    "C_C0_uncorrected": 0.028659692001282183,
+    "C_C0_corrected": 0.028659692001282183
+  },
+  "chemical": {
+    "D_gas": 0.068,
+    "kp": 0.014751760253892977,
+    "Eprime": 2.8,
+    "theta": 0.21042387593744435,
+    "Da": 0.15465834214040655,
+    "correction_factor": 0.9903134499726152,
+    "C_C0_uncorrected": 0.866318787534748,
+    "C_C0_corrected": 0.8579271472596293
+  },
+  "sweep": {
+    "k": 1.83,
+    "theta": 8.571678475687071e-07,
+    "rows": [
+      {
+        "Eavg": 0.1,
+        "C_C0_rtd": 0.5616942063627477,
+        "log10_inactivation": 0.2505000556639419,
+        "Davg": 0.37443072041809955,
+        "C_C0_well_mixed": 0.5039852796579786,
+        "pct_relative_difference": -0.11450518305600582,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 0.25,
+        "C_C0_rtd": 0.26690635026501375,
+        "log10_inactivation": 0.5736410933078618,
+        "Davg": 0.9360768010452488,
+        "C_C0_well_mixed": 0.18032030343876002,
+        "pct_relative_difference": -0.48017913221657754,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 0.5,
+        "C_C0_rtd": 0.08643370530534711,
+        "log10_inactivation": 1.0633168689370591,
+        "Davg": 1.8721536020904976,
+        "C_C0_well_mixed": 0.03251541183224649,
+        "pct_relative_difference": -1.6582380611162448,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 0.75,
+        "C_C0_rtd": 0.0299544982980137,
+        "log10_inactivation": 1.523537949925356,
+        "Davg": 2.8082304031357466,
+        "C_C0_well_mixed": 0.005863188928026931,
+        "pct_relative_difference": -4.1089089343218435,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 1.0,
+        "C_C0_rtd": 0.01078827596707732,
+        "log10_inactivation": 1.9670479527043203,
+        "Davg": 3.7443072041809953,
+        "C_C0_well_mixed": 0.0010572520066205948,
+        "pct_relative_difference": -9.204072349373934,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 1.25,
+        "C_C0_rtd": 0.003985520040767924,
+        "log10_inactivation": 2.3995150027244714,
+        "Davg": 4.680384005226244,
+        "C_C0_well_mixed": 0.00019064400264506333,
+        "pct_relative_difference": -19.90556212349399,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 1.5,
+        "C_C0_rtd": 0.0014995071913035175,
+        "log10_inactivation": 2.8240514471195617,
+        "Davg": 5.616460806271493,
+        "C_C0_well_mixed": 3.43769844057376e-05,
+        "pct_relative_difference": -42.619509309061044,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 1.75,
+        "C_C0_rtd": 0.0005720330119262988,
+        "log10_inactivation": 3.24257890742423,
+        "Davg": 6.552537607316742,
+        "C_C0_well_mixed": 6.198868259352128e-06,
+        "pct_relative_difference": -91.28023374481016,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 2.0,
+        "C_C0_rtd": 0.0002206083423486261,
+        "log10_inactivation": 3.656378068652534,
+        "Davg": 7.4886144083619905,
+        "C_C0_well_mixed": 1.1177818055032742e-06,
+        "pct_relative_difference": -196.36261698167343,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 2.25,
+        "C_C0_rtd": 8.583213298151932e-05,
+        "log10_inactivation": 4.066350094854853,
+        "Davg": 8.42469120940724,
+        "C_C0_well_mixed": 2.0155875434667554e-07,
+        "pct_relative_difference": -424.84175150184944,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 2.5,
+        "C_C0_rtd": 3.363910931905144e-05,
+        "log10_inactivation": 4.4731555117725215,
+        "Davg": 9.360768010452489,
+        "C_C0_well_mixed": 3.634513574453091e-08,
+        "pct_relative_difference": -924.5463937595373,
+        "correction_factor": 1.0
+      },
+      {
+        "Eavg": 2.75,
+        "C_C0_rtd": 1.3264956822672312e-05,
+        "log10_inactivation": 4.877294159304395,
+        "Davg": 10.296844811497737,
+        "C_C0_well_mixed": 6.553765905976763e-09,
+        "pct_relative_difference": -2023.0205422313331,
+        "correction_factor": 1.0
+      }
+    ]
+  },
+  "find_k_round_trip_corrected": [
+    {
+      "k_true": 0.05,
+      "Eavg": 2.8,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.6025414230201939,
+      "k_recovered": 0.04999999999981461
+    },
+    {
+      "k_true": 0.2,
+      "Eavg": 2.8,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.1582615938094071,
+      "k_recovered": 0.19999999999999998
+    },
+    {
+      "k_true": 0.5,
+      "Eavg": 2.8,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.016902805517518556,
+      "k_recovered": 0.49999999998991995
+    }
+  ],
+  "find_e_round_trip_corrected": [
+    {
+      "Eavg_true": 0.5,
+      "k": 0.014751760253892977,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.9728075294817056,
+      "Eavg_recovered": 0.49999999999999856
+    },
+    {
+      "Eavg_true": 1.5,
+      "k": 0.014751760253892977,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.9209828128480179,
+      "Eavg_recovered": 1.5000000000000053
+    },
+    {
+      "Eavg_true": 2.5,
+      "k": 0.014751760253892977,
+      "theta": 0.21042387593744435,
+      "C_C0": 0.8720166353671472,
+      "Eavg_recovered": 2.499999999991255
+    }
+  ]
+}

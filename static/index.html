@@ -1,8 +1,8 @@
-<title>RTD Reactor Calculator</title>
+<title>RTD Reactor Calculator — CORRECTED model</title>
 <link rel="stylesheet" href="/static/css/styles.css" />
 
 <header class="topbar">
-  <h1>RTD Reactor Calculator</h1>
+  <h1>RTD Reactor Calculator <span class="build-badge">CORRECTED model</span></h1>
   <nav>
     <a href="/" class="active">Calculator</a>
     <a href="/help">Help</a>
@@ -201,6 +201,24 @@
         <span class="result-label" data-var-id="diffusion_regime">Diffusion regime (Pe)</span>
         <span class="result-value" id="res-diffusion-regime">—</span>
       </div>
+      <hr class="divider" />
+      <div class="result-item">
+        <span class="result-label" data-var-id="theta">Radial mixing (θ)</span>
+        <span class="result-value" id="res-theta">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="Da">Damköhler (Da)</span>
+        <span class="result-value" id="res-da">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label" data-var-id="correction_factor">Diffusion correction</span>
+        <span class="result-value" id="res-correction">—</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">C/C0 before correction</span>
+        <span class="result-value" id="res-c-c0-uncorrected">—</span>
+      </div>
+      <div class="correction-note" id="correction-note"></div>
       <hr class="divider" />
     </div>
 

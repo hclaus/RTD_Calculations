@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     default_phi: float = 1.0
     default_eprime: float = 2.8
     default_molecular_weight: float = 319.62  # CBr4, g/mol -- see app/core/chemical.py
-    default_back_solve_eavg_c_c0_values: list[float] = [0.95, 0.90, 0.85, 0.80]
+    # CORRECTED build: the flux-weighted RTD predicts higher survival than
+    # the area-weighted one, so Eavg <= 3 mW/cm^2 now bottoms out around
+    # C/C0 ~ 0.85. The legacy defaults (0.85, 0.80) are unreachable within
+    # the solver bracket here, so these are raised accordingly.
+    default_back_solve_eavg_c_c0_values: list[float] = [0.97, 0.94, 0.91, 0.88]
 
     # Standard pipe-flow Reynolds-number regime thresholds.
     re_laminar_max: float = 2300.0

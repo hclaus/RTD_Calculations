@@ -15,28 +15,58 @@ def scipy_ref():
     return json.loads((FIXTURES / "scipy_reference_values.json").read_text())
 
 
-def test_headline_matches_scipy_reference(scipy_ref):
-    ri = scipy_ref["reactor_inputs"]
-    body = {
-        "reactor": ri,
-        "k": scipy_ref["headline"]["k"],
-        "Eavg": scipy_ref["headline"]["Eavg"],
-        "measured_C_C0": scipy_ref["headline"]["measured_C_C0"],
-    }
+@pytest.fixture
+def corrected_ref():
+    return json.loads((FIXTURES / "corrected_reference_values.json").read_text())
+
+
+def test_headline_matches_corrected_reference(corrected_ref):
+    """Headline uses the flux-weighted RTD plus the diffusion correction.
+    With the aerosol diffusivity the correction is exactly 1, so the
+    result equals the pure flux-weighted value."""
+    ri = corrected_ref["reactor_inputs"]
+    m = corrected_ref["microbiological"]
+    body = {"reactor": ri, "k": m["k"], "Eavg": m["Eavg"]}
     resp = client.post("/api/microbiology/headline", json=body)
     assert resp.status_code == 200
     data = resp.json()
 
-    assert data["C_C0_reactor"] == pytest.approx(scipy_ref["headline"]["C_C0_reactor"], rel=1e-6)
-    assert data["estimated_k"] == pytest.approx(scipy_ref["headline"]["estimated_k"], rel=1e-6)
-    assert data["residual"] == pytest.approx(0.0, abs=1e-9)
+    assert data["C_C0_reactor"] == pytest.approx(m["C_C0_corrected"], rel=1e-6)
+    assert data["C_C0_uncorrected"] == pytest.approx(m["C_C0_uncorrected"], rel=1e-6)
+    assert data["correction_factor"] == pytest.approx(1.0, abs=1e-9)
+    assert data["Da"] == pytest.approx(m["Da"], rel=1e-6)
+    assert data["derived"]["theta"] == pytest.approx(m["theta"], rel=1e-6)
 
-    derived = data["derived"]
-    expected = scipy_ref["derived"]
-    for key in ("Uavg", "U0", "Re", "Pe", "q", "L_over_U0"):
-        assert derived[key] == pytest.approx(expected[key], rel=1e-6)
-    assert derived["flow_regime"] == expected["flow_regime"]
-    assert derived["diffusion_regime"] == expected["diffusion_regime"]
+    expected = corrected_ref["derived"]
+    for key in ("Uavg", "U0", "Re", "Pe"):
+        assert data["derived"][key] == pytest.approx(expected[key], rel=1e-6)
+
+
+def test_headline_applies_correction_for_gas_phase(corrected_ref):
+    """Swapping in a gas-phase diffusivity must engage a real correction."""
+    ri = dict(corrected_ref["reactor_inputs"])
+    c = corrected_ref["chemical"]
+    ri["D"] = c["D_gas"]
+    body = {"reactor": ri, "k": c["kp"], "Eavg": c["Eprime"]}
+    data = client.post("/api/microbiology/headline", json=body).json()
+
+    assert data["derived"]["theta"] == pytest.approx(c["theta"], rel=1e-6)
+    assert data["correction_factor"] == pytest.approx(c["correction_factor"], rel=1e-6)
+    assert data["C_C0_reactor"] == pytest.approx(c["C_C0_corrected"], rel=1e-6)
+    # correction reduces survival, so the corrected value is below the raw one
+    assert data["C_C0_reactor"] < data["C_C0_uncorrected"]
+
+
+def test_headline_back_solve_residual_closes_with_correction(corrected_ref):
+    """The residual must be ~0 even with the correction active, which only
+    holds if the correction is inside the root-find."""
+    ri = dict(corrected_ref["reactor_inputs"])
+    c = corrected_ref["chemical"]
+    ri["D"] = c["D_gas"]
+    body = {"reactor": ri, "k": 0.3, "Eavg": c["Eprime"], "measured_C_C0": 0.5}
+    data = client.post("/api/microbiology/headline", json=body).json()
+    assert data["estimated_k"] is not None
+    assert data["residual"] == pytest.approx(0.0, abs=1e-9)
 
 
 def test_headline_without_measured_c_c0_skips_solve(scipy_ref):
@@ -86,9 +116,28 @@ def test_sweep_returns_all_requested_rows_not_truncated(scipy_ref):
     data = resp.json()
     assert len(data["rows"]) == 12
 
+    # Davg is pure arithmetic and unchanged by the RTD weighting; C_C0_rtd
+    # now comes from the flux-weighted RTD so it is checked against the
+    # corrected fixture instead (see test_sweep_matches_corrected_reference).
     for row, expected in zip(data["rows"], scipy_ref["sweep"]["rows"]):
-        assert row["C_C0_rtd"] == pytest.approx(expected["C_C0_rtd"], rel=1e-6)
         assert row["Davg"] == pytest.approx(expected["Davg"], rel=1e-6)
+
+
+def test_sweep_matches_corrected_reference(corrected_ref):
+    ri = corrected_ref["reactor_inputs"]
+    rows_ref = corrected_ref["sweep"]["rows"]
+    body = {
+        "reactor": ri,
+        "k": corrected_ref["sweep"]["k"],
+        "eavg_values": [r["Eavg"] for r in rows_ref],
+    }
+    data = client.post("/api/microbiology/sweep", json=body).json()
+    assert len(data["rows"]) == len(rows_ref)
+    for row, expected in zip(data["rows"], rows_ref):
+        assert row["C_C0_rtd"] == pytest.approx(expected["C_C0_rtd"], rel=1e-6)
+        assert row["correction_factor"] == pytest.approx(
+            expected["correction_factor"], rel=1e-6
+        )
 
 
 def test_back_solve_k_returns_k_for_each_pair(scipy_ref):

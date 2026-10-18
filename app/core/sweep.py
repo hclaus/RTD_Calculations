@@ -10,17 +10,31 @@ truncation -- callers get the full requested set of Eavg values.
 
 import math
 
-from app.core.rtd_engine import integrate_rtd
+from app.core.diffusion import correction_factor, damkohler
+from app.core.rtd_engine import integrate_rtd_corrected
 
 
-def build_sweep_table(L: float, U0: float, q: float, k: float, eavg_values: list[float]) -> list[dict]:
+def build_sweep_table(
+    L: float,
+    U0: float,
+    q: float,
+    k: float,
+    eavg_values: list[float],
+    theta: float | None = None,
+) -> list[dict]:
     """For each Eavg, compute RTD-weighted survival, log10 inactivation, the
-    naive well-mixed-dose survival, and their relative difference."""
+    naive well-mixed-dose survival, and their relative difference.
+
+    Uses the flux-weighted RTD with the molecular-diffusion correction when
+    theta is supplied. Note the correction varies along the sweep, since
+    Da = k*Eavg*q changes with Eavg -- so it is applied per row, not once.
+    """
     rows = []
     for Eavg in eavg_values:
-        c_c0_rtd = integrate_rtd(L, U0, k, Eavg)
+        c_c0_rtd = integrate_rtd_corrected(L, U0, k, Eavg, theta)
         davg = Eavg * q
         c_c0_well_mixed = math.exp(-k * davg)
+        corr = correction_factor(theta, damkohler(k, Eavg, q)) if theta else 1.0
         rows.append(
             {
                 "Eavg": Eavg,
@@ -29,6 +43,7 @@ def build_sweep_table(L: float, U0: float, q: float, k: float, eavg_values: list
                 "Davg": davg,
                 "C_C0_well_mixed": c_c0_well_mixed,
                 "pct_relative_difference": (c_c0_well_mixed - c_c0_rtd) / c_c0_well_mixed,
+                "correction_factor": corr,
             }
         )
     return rows

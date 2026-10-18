@@ -56,6 +56,8 @@ def back_solve_eavg(req: BackSolveEavgRequest) -> BackSolveEavgResponse:
                 req.k,
                 eavg_min=req.solver_settings.eavg_min,
                 eavg_max=req.solver_settings.eavg_max,
+                # inside the root-find: Da = k*Eavg*tau contains the unknown
+                theta=derived.theta,
             )
             rows.append(BackSolveEavgRow(C_C0=c_c0, Eavg=eavg))
         except BisectionError as exc:

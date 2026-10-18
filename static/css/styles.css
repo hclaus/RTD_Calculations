@@ -428,3 +428,26 @@ table.data-table th:first-child, table.data-table td:first-child {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
+
+/* Marks this as the CORRECTED-model build (flux-weighted RTD + diffusion
+   correction), so it is never confused with the legacy build on :8000. */
+.build-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--badge-transitional);
+  color: var(--panel-bg);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.correction-note {
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0.3rem 0 0;
+}

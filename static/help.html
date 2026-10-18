@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="/static/css/styles.css" />
 
 <header class="topbar">
-  <h1>RTD Reactor Calculator</h1>
+  <h1>RTD Reactor Calculator <span class="build-badge">CORRECTED model</span></h1>
   <nav>
     <a href="/">Calculator</a>
     <a href="/help" class="active">Help</a>
@@ -157,6 +157,72 @@ E(t) = 0              for t ≤ L/U0</pre>
       reachable within the current bracket, you'll see a clear error rather than a
       silently wrong answer — widen the relevant bracket in the Advanced settings panel
       and recalculate.
+    </p>
+  </section>
+
+  <section id="diffusion-correction">
+    <h2>Molecular diffusion correction</h2>
+    <p>
+      <strong>This is the CORRECTED build.</strong> It differs from the standard
+      calculator in two ways: it uses the flux-weighted laminar RTD
+      <code>E(t) = τ²/(2t³)</code> (whose mean residence time equals V/Q, as a flow
+      system requires), and it applies a molecular-diffusion correction where that
+      matters.
+    </p>
+    <p>
+      Taylor's laminar RTD assumes fluid elements never leave their streamline. That
+      holds for bioaerosols, which barely diffuse (Pe ≈ 4×10⁸), but not for gas-phase
+      chemical actinometry (Pe ≈ 1.5×10³). The reactor then sits in an
+      <em>intermediate</em> regime where neither Taylor's zero-diffusion RTD nor the
+      classical Taylor-Aris dispersion model is valid, so no closed-form RTD exists.
+    </p>
+    <p>
+      Because first-order kinetics make conversion depend only on the RTD and not on
+      the degree of segregation (Danckwerts; Zwietering), the fix is a clean
+      multiplicative factor on the zero-diffusion result:
+    </p>
+    <pre>(C/C0)_corrected = F(θ, Da) · (C/C0)_zero-diffusion
+
+θ  = D·τ/a²      radial mixing during one transit
+Da = k·Ē·τ       reaction progress during one transit
+τ  = L/Uavg = π·a²·L/Q</pre>
+    <p>
+      <code>F</code> is interpolated from a table precomputed by Monte Carlo
+      (6×10⁶ particles per grid point), validated against the analytic
+      zero-diffusion limit. Everything the table needs is already collected by the
+      calculator — the diffusivity <code>D</code> sets θ, and <code>k</code> and
+      <code>Ē</code> set Da — so no new input is required.
+    </p>
+    <p>
+      <strong>The correction applies itself only where it makes sense.</strong> θ is
+      computed from the diffusivity, so an aerosol (θ ≈ 10⁻⁷) returns F = 1.000
+      exactly and the result is unchanged, while a gas-phase actinometer picks up a
+      real correction. The results panel shows θ, Da and F, with the badge colour
+      indicating whether the effect is negligible, moderate or large.
+    </p>
+    <p>
+      <strong>Why the correction sits inside the solver.</strong> Da contains k and Ē,
+      so when back-solving either of them the correction changes at every iteration.
+      Applying F once to an already-solved answer would converge against the
+      uncorrected model and then nudge the result — subtly wrong. Here F is evaluated
+      inside the root-finder's residual, so it converges to the root of the corrected
+      equation. θ stays constant during the solve (it depends only on D, flow and
+      geometry), which keeps the interpolation smooth and preserves monotonicity, so
+      the existing solver brackets still work.
+    </p>
+    <p>
+      <strong>Magnitude.</strong> At the chemical defaults the correction is only
+      ≈1%, but it grows steeply with conversion — tens of percent at high Da. That
+      creates a real experimental trade-off: high conversion gives better measurement
+      precision but demands the correction. Note also that the effect is
+      <em>non-monotonic</em> in θ, reaching a maximum near θ ≈ 2.6 where Taylor
+      dispersion is at its minimum, then weakening again.
+    </p>
+    <p>
+      <strong>Limits.</strong> The table is specific to this reactor's geometry
+      (a = 1.1 cm, L = 19.7 cm); it assumes first-order kinetics and a radially
+      uniform fluence rate, models the inlet as an open boundary, and assumes
+      fully-developed flow with no wall adsorption.
     </p>
   </section>
 

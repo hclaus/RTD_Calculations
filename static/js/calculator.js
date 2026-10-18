@@ -22,7 +22,10 @@
   const DEFAULT_SWEEP = [0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75];
   const DEFAULT_BACKSOLVE_CC0_MICROBIO = [0.5, 0.10, 0.05, 0.01, 0.005];
   const DEFAULT_BACKSOLVE_EAVG = [1.6, 1.6, 1.6, 1.6, 1.6];
-  const DEFAULT_BACKSOLVE_CC0_CHEMICAL = [0.95, 0.90, 0.85, 0.80];
+  // CORRECTED build: the flux-weighted RTD predicts higher survival, so
+  // Eavg <= 3 mW/cm^2 bottoms out near C/C0 ~ 0.85 -- the legacy defaults
+  // (0.85, 0.80) would be unreachable within the solver bracket.
+  const DEFAULT_BACKSOLVE_CC0_CHEMICAL = [0.97, 0.94, 0.91, 0.88];
 
   // Every left-column input, saved to / loaded from a local JSON file as a
   // flat {elementId: value} map. Covers both modes' fields plus the
@@ -301,6 +304,32 @@
     const diffBadge = regimeBadgeClass(data.derived.diffusion_regime);
     $("res-diffusion-regime").innerHTML =
       `<span class="badge ${diffBadge}">${data.derived.diffusion_regime.split(" — ")[0]}</span> (Pe=${data.derived.Pe.toExponential(2)})`;
+
+    // --- diffusion-correction diagnostics (CORRECTED build only) ---
+    $("res-theta").textContent = data.derived.theta.toExponential(3);
+    $("res-da").textContent = data.Da.toFixed(4);
+    $("res-c-c0-uncorrected").textContent = data.C_C0_uncorrected.toExponential(4);
+
+    const f = data.correction_factor;
+    const pct = (1 - f) * 100;
+    // "applied when it makes sense" is automatic: theta comes from the
+    // diffusivity, so aerosols land at F=1.000 and only gas-phase cases
+    // pick up a real correction. Badge colour reflects the magnitude.
+    let cls = "laminar";                  // green: negligible
+    if (Math.abs(pct) >= 10) cls = "turbulent";        // red: large
+    else if (Math.abs(pct) >= 1) cls = "transitional"; // amber: moderate
+    $("res-correction").innerHTML =
+      `<span class="badge ${cls}">${f.toFixed(4)}</span> (${pct >= 0 ? "−" : "+"}${Math.abs(pct).toFixed(2)}%)`;
+
+    const note = $("correction-note");
+    if (data.correction_warning) {
+      note.textContent = "⚠ " + data.correction_warning;
+    } else if (Math.abs(pct) < 0.05) {
+      note.textContent = "Diffusion negligible here — the zero-diffusion RTD is the correct model.";
+    } else {
+      note.textContent = "Correction interpolated from the tabulated Monte Carlo surface and applied "
+        + "inside the solver, not as a post-hoc factor.";
+    }
   }
 
   function renderSweepTable(sweepResponse) {

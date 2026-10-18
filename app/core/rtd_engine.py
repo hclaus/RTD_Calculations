@@ -96,6 +96,29 @@ def survival_well_mixed(L: float, Uavg: float, k: float, Eavg: float) -> float:
     return math.exp(-k * Eavg * q)
 
 
+def integrate_rtd_corrected(
+    L: float, U0: float, k: float, Eavg: float, theta: float | None = None
+) -> float:
+    """Survival ratio C/C0 using the flux-weighted laminar RTD, optionally
+    multiplied by the tabulated molecular-diffusion correction.
+
+    theta = D*tau/a^2. Pass None (or 0) to skip the correction entirely and
+    get the pure zero-diffusion flux-weighted result -- useful for
+    comparison and for the aerosol case where the correction is 1 anyway.
+
+    Note tau is derived here as 2*L/U0 (= L/Uavg), so no separate flow
+    argument is needed.
+    """
+    base = integrate_rtd_flux(L, U0, k, Eavg)
+    if not theta:
+        return base
+
+    from app.core.diffusion import correction_factor  # local: avoids a cycle
+
+    tau = 2.0 * L / U0
+    return base * correction_factor(theta, k * Eavg * tau)
+
+
 def mean_residence_time_from_rtd(
     L: float, U0: float, weighting: str = "flux", t_max_factor: float | None = None
 ) -> float:
