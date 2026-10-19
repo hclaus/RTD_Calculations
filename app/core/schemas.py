@@ -173,3 +173,68 @@ class BackSolveEavgRow(BaseModel):
 
 class BackSolveEavgResponse(BaseModel):
     rows: list[BackSolveEavgRow]
+
+
+class OzoneRequest(BaseModel):
+    """Ozone generation is ZERO order, so unlike the other two modes there
+    is no rate constant to supply or back-solve -- only the measured,
+    fluence-normalised generation rate G."""
+
+    reactor: ReactorInputs
+    Eavg: float = Field(..., gt=0, description="Average fluence rate, mW/cm^2")
+    G: float = Field(
+        default_factory=lambda: settings.default_ozone_generation_rate,
+        gt=0,
+        description="Measured ozone generation rate, ppb/hr per (uW/cm^2)",
+    )
+    kd: float = Field(
+        default_factory=lambda: settings.default_ozone_kd,
+        ge=0,
+        description="Optional photolytic ozone-loss constant, cm^2/mJ. 0 disables it.",
+    )
+
+
+class OzoneResponse(BaseModel):
+    derived: ReactorDerived
+    ozone_ppb: float
+    # G*Eavg*tau -- the pure zero-order value, shown so the effect of any
+    # loss term is visible rather than silently folded in.
+    ozone_ppb_zero_order: float
+    ozone_ppb_well_mixed: float
+    G_si: float = Field(..., description="G converted to ppb/s per (mW/cm^2)")
+    # Loss diagnostics. Meaningful only when kd > 0; at kd == 0 the RTD
+    # drops out of the problem entirely.
+    Da_loss: float
+    # What the diffusion table WOULD return at this (theta, Da). Reported
+    # for transparency but NOT applied -- see ozone.ozone_outlet for why
+    # (the correction multiplies S, ozone depends on 1-S, ~45x amplification).
+    correction_factor: float
+    correction_applied: bool = False
+    correction_warning: str | None = None
+
+
+class OzoneSweepRequest(BaseModel):
+    reactor: ReactorInputs
+    G: float = Field(
+        default_factory=lambda: settings.default_ozone_generation_rate, gt=0
+    )
+    kd: float = Field(default_factory=lambda: settings.default_ozone_kd, ge=0)
+    eavg_values: list[float] = Field(
+        default_factory=lambda: list(settings.default_sweep_eavg_values)
+    )
+
+
+class OzoneSweepRow(BaseModel):
+    Eavg: float
+    ozone_ppb: float
+    ozone_ppb_well_mixed: float
+    ozone_ppb_zero_order: float
+    correction_factor: float = 1.0
+
+
+class OzoneSweepResponse(BaseModel):
+    """No TrendlineFit here, unlike SweepResponse: at kd == 0 the Eavg ->
+    [O3] relation is exactly linear through the origin, so the forced-
+    EXPONENTIAL fit used for survival curves would be meaningless."""
+
+    rows: list[OzoneSweepRow]

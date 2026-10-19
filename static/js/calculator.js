@@ -13,7 +13,13 @@
     "in-D": 2.77e-7, "in-k": 0.87, "in-Eavg": 1.6, "in-measured": 0.00202,
     "in-wavelength": 222.0, "in-sigma": 1.32e-17, "in-phi": 1.0, "in-eprime": 2.8,
     "in-molecular-weight": 319.62,
+    // Ozone: 10.5 ppb/hr/(uW/cm^2) is the measured 222nm generation rate.
+    // kd (photolytic loss) defaults OFF -- see app/core/ozone.py.
+    "in-ozone-G": 10.5, "in-ozone-Eavg": 1.6, "in-ozone-kd": 0,
   };
+  // Ozone in air, cm^2/s -- used for Pe/theta when ozone mode is selected,
+  // in place of the bioaerosol or actinometer-vapour diffusivity.
+  const OZONE_DEFAULT_D = 0.144;
   // Bioaerosol default -- restored when switching back to microbiological
   // mode, since chemical mode overwrites #in-D with a gas-phase estimate
   // (~0.07 cm^2/s, ~6 orders of magnitude larger than this) derived from
@@ -35,6 +41,7 @@
     "in-L", "in-a", "in-Q", "in-mu", "in-rho", "in-D",
     "in-k", "in-Eavg", "in-measured",
     "in-wavelength", "in-sigma", "in-phi", "in-eprime", "in-molecular-weight",
+    "in-ozone-G", "in-ozone-Eavg", "in-ozone-kd",
     "in-backsolve-values", "in-backsolve-eavg-values", "in-sweep-values",
     "in-k-min", "in-k-max", "in-eavg-min", "in-eavg-max",
   ];
@@ -65,53 +72,81 @@
     $("in-backsolve-eavg-values").value = DEFAULT_BACKSOLVE_EAVG.join(", ");
   }
 
-  // Swaps which fieldset/fields/labels are visible between Microbiological
-  // and Chemical mode. Both modes reuse the same results panel, both tables,
-  // the chart, and the sweep-values / C-C0-values input fields -- only the
-  // mode-specific bits (rate-constant inputs, the paired-Eavg field, a few
-  // headings/columns) actually differ.
+  // Swaps which fieldset/fields/labels are visible between the three modes.
+  // All of them reuse the same results panel, sweep table and chart -- only
+  // the mode-specific bits (rate-constant inputs, headings, table columns)
+  // differ. Ozone additionally drops the whole back-solve section, because
+  // its inversion is algebraic (Eavg = [O3]/(G*tau)), not a root-find.
   async function applyModeVisibility() {
     const mode = getMode();
     const isChemical = mode === "chemical";
+    const isOzone = mode === "ozone";
 
     // Keep the shared diffusivity input physically appropriate for the
-    // active domain: gas-phase estimate (from MW) in chemical mode,
-    // bioaerosol default when back in microbiological mode.
+    // active domain: gas-phase estimate (from MW) in chemical mode, ozone
+    // in air for ozone mode, bioaerosol default for microbiological.
     if (isChemical) {
       try {
         await updateDiffusivityFromMolecularWeight();
       } catch (err) {
         showError(err.message || String(err));
       }
+    } else if (isOzone) {
+      $("in-D").value = OZONE_DEFAULT_D;
     } else {
       $("in-D").value = MICROBIO_DEFAULT_D;
     }
 
-    $("microbio-fieldset").classList.toggle("hidden", isChemical);
+    $("microbio-fieldset").classList.toggle("hidden", mode !== "microbio");
     $("chemical-fieldset").classList.toggle("hidden", !isChemical);
+    $("ozone-fieldset").classList.toggle("hidden", !isOzone);
 
-    // Chemical mode uses one shared kp for the whole back-solve batch, so
-    // the per-row paired-Eavg field (microbio-only) is hidden.
-    $("backsolve-eavg-group").classList.toggle("hidden", isChemical);
-    $("backsolve-summary").textContent = isChemical
-      ? "Calculate E' from measured C/C0"
-      : "Calculate k from measured C/C0";
-    $("backsolve-section-title").textContent = isChemical
-      ? "Calculated E' (mW/cm²) from C/C0 values"
-      : "Calculated k (cm²/mJ) from C/C0 and Eavg values";
-    $("backsolve-table-head").innerHTML = isChemical
-      ? "<tr><th>C/C0</th><th>E'</th></tr>"
-      : "<tr><th>C/C0</th><th>Eavg</th><th>k</th></tr>";
-    $("in-backsolve-values").value = (isChemical ? DEFAULT_BACKSOLVE_CC0_CHEMICAL : DEFAULT_BACKSOLVE_CC0_MICROBIO).join(", ");
+    // --- back-solve section: hidden entirely in ozone mode ---
+    $("backsolve-input-details").classList.toggle("hidden", isOzone);
+    $("backsolve-section-header").classList.toggle("hidden", isOzone);
+    $("backsolve-table-details").classList.toggle("hidden", isOzone);
+    if (!isOzone) {
+      // Chemical mode uses one shared kp for the whole back-solve batch, so
+      // the per-row paired-Eavg field (microbio-only) is hidden.
+      $("backsolve-eavg-group").classList.toggle("hidden", isChemical);
+      $("backsolve-summary").textContent = isChemical
+        ? "Calculate E' from measured C/C0"
+        : "Calculate k from measured C/C0";
+      $("backsolve-section-title").textContent = isChemical
+        ? "Calculated E' (mW/cm²) from C/C0 values"
+        : "Calculated k (cm²/mJ) from C/C0 and Eavg values";
+      $("backsolve-table-head").innerHTML = isChemical
+        ? "<tr><th>C/C0</th><th>E'</th></tr>"
+        : "<tr><th>C/C0</th><th>Eavg</th><th>k</th></tr>";
+      $("in-backsolve-values").value = (isChemical ? DEFAULT_BACKSOLVE_CC0_CHEMICAL : DEFAULT_BACKSOLVE_CC0_MICROBIO).join(", ");
+    }
 
     $("sweep-values-summary").textContent = isChemical ? "Sweep E' values" : "Sweep Eavg values";
 
+    // --- headline results: swap C/C0 for [O3], drop the solver rows ---
+    $("result-item-c-c0").classList.toggle("hidden", isOzone);
+    $("result-item-ozone").classList.toggle("hidden", !isOzone);
     // The single-measurement headline back-solve (tied to microbio's
     // "Measured C/C0" field) doesn't apply in chemical mode -- kp is
     // derived from known chemistry, not something to back-solve per-point;
     // that back-solve lives entirely in the batch table above instead.
-    $("result-item-est-k").classList.toggle("hidden", isChemical);
-    $("result-item-residual").classList.toggle("hidden", isChemical);
+    $("result-item-est-k").classList.toggle("hidden", isChemical || isOzone);
+    $("result-item-residual").classList.toggle("hidden", isChemical || isOzone);
+    // "C/C0 before correction" is meaningless when the output is a
+    // concentration; Da and the correction only matter in ozone mode once
+    // kd > 0, and renderOzoneHeadline re-shows them in that case.
+    $("result-item-c-c0-uncorrected").classList.toggle("hidden", isOzone);
+
+    // --- sweep table + chart headings ---
+    $("sweep-section-title").firstChild.textContent = isOzone
+      ? "Outlet [O₃] (ppb) depending on avg. irradiance Eavg "
+      : "Simulated C/C0 depending on avg. irradiance Eavg ";
+    $("sweep-table-head").innerHTML = isOzone
+      ? "<tr><th>Eavg</th><th>[O₃] (RTD)</th><th>[O₃] (well-mixed)</th><th>[O₃] (zero-order)</th></tr>"
+      : "<tr><th>Eavg</th><th>Davg</th><th>C/C0 (RTD)</th><th>log10 inact.</th><th>C/C0 (well-mixed)</th><th>% rel. diff.</th></tr>";
+    $("chart-title").textContent = isOzone
+      ? "Ozone output vs. fluence rate"
+      : "RTD vs. well-mixed survival";
 
     // Clear stale content from the other mode so nothing mismatched lingers.
     document.querySelector("#backsolve-table tbody").innerHTML = "";
@@ -332,6 +367,62 @@
     }
   }
 
+  // Ozone headline. The RTD and the diffusion correction drop out entirely
+  // at kd == 0 (zero-order kinetics -> the SFM integral collapses onto the
+  // RTD's first moment), so the Da/correction rows only appear once a
+  // photolytic-loss constant is supplied.
+  function renderOzoneHeadline(data) {
+    $("res-ozone").textContent = data.ozone_ppb.toFixed(3) + " ppb";
+    $("res-q").textContent = data.derived.q.toFixed(4) + " s";
+    $("res-uavg").textContent = data.derived.Uavg.toFixed(3) + " cm/s";
+    $("res-u0").textContent = data.derived.U0.toFixed(3) + " cm/s";
+
+    const flowBadge = regimeBadgeClass(data.derived.flow_regime);
+    $("res-flow-regime").innerHTML =
+      `<span class="badge ${flowBadge}">${data.derived.flow_regime}</span> (Re=${data.derived.Re.toFixed(1)})`;
+    const diffBadge = regimeBadgeClass(data.derived.diffusion_regime);
+    $("res-diffusion-regime").innerHTML =
+      `<span class="badge ${diffBadge}">${data.derived.diffusion_regime.split(" — ")[0]}</span> (Pe=${data.derived.Pe.toExponential(2)})`;
+
+    $("res-theta").textContent = data.derived.theta.toExponential(3);
+
+    const hasLoss = data.Da_loss > 0;
+    $("result-item-da").classList.toggle("hidden", !hasLoss);
+    $("result-item-correction").classList.toggle("hidden", !hasLoss);
+
+    const note = $("correction-note");
+    if (hasLoss) {
+      $("res-da").textContent = data.Da_loss.toFixed(4);
+      $("res-correction").innerHTML =
+        `<span class="badge transitional">${data.correction_factor.toFixed(4)}</span> (not applied)`;
+      const pct = (data.ozone_ppb / data.ozone_ppb_zero_order - 1) * 100;
+      note.textContent =
+        `Photolytic loss reduces output by ${Math.abs(pct).toFixed(2)}% ` +
+        `(zero-order would be ${data.ozone_ppb_zero_order.toFixed(3)} ppb). ` +
+        (data.correction_warning || "");
+    } else {
+      note.textContent =
+        "Zero-order kinetics: the RTD shape and molecular diffusion both cancel exactly, " +
+        "so [O₃] = G·Ē·τ. Total production is also independent of flow rate — raising Q " +
+        "dilutes the outlet but delivers the same ozone downstream.";
+    }
+  }
+
+  function renderOzoneSweepTable(sweepResponse) {
+    const tbody = document.querySelector("#sweep-table tbody");
+    tbody.innerHTML = "";
+    for (const row of sweepResponse.rows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.Eavg}</td>
+        <td>${row.ozone_ppb.toFixed(3)}</td>
+        <td>${row.ozone_ppb_well_mixed.toFixed(3)}</td>
+        <td>${row.ozone_ppb_zero_order.toFixed(3)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
   function renderSweepTable(sweepResponse) {
     const tbody = document.querySelector("#sweep-table tbody");
     tbody.innerHTML = "";
@@ -374,6 +465,51 @@
     const mode = getMode();
     const reactor = readReactorInputs();
     const solver_settings = readSolverSettings();
+
+    // Ozone has its own routes: the output is a concentration in ppb, not a
+    // survival ratio, so it can't be funnelled through /api/microbiology
+    // the way chemical mode funnels kp through as k.
+    if (mode === "ozone") {
+      try {
+        const body = {
+          reactor,
+          Eavg: parseFloat($("in-ozone-Eavg").value),
+          G: parseFloat($("in-ozone-G").value),
+          kd: parseFloat($("in-ozone-kd").value) || 0,
+        };
+        const headlineResp = await fetch("/api/ozone/headline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!headlineResp.ok) {
+          const err = await headlineResp.json();
+          throw new Error(err.detail || "Ozone calculation failed.");
+        }
+        renderOzoneHeadline(await headlineResp.json());
+
+        const sweepResp = await fetch("/api/ozone/sweep", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reactor, G: body.G, kd: body.kd,
+            eavg_values: readCommaList("in-sweep-values"),
+          }),
+        });
+        if (!sweepResp.ok) {
+          const err = await sweepResp.json();
+          throw new Error(err.detail || "Ozone sweep failed.");
+        }
+        const sweepData = await sweepResp.json();
+        renderOzoneSweepTable(sweepData);
+        renderOzoneChart(sweepData);
+        $("sweep-heading-detail").textContent = `(G=${body.G} ppb/hr per µW/cm²)`;
+        if (autoOpen) $("sweep-table-details").open = true;
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+      return;
+    }
 
     try {
       let k, Eavg, measured_C_C0, headingPrefix;
@@ -424,6 +560,9 @@
   async function calculateBackSolveK(autoOpen = true) {
     clearError();
     const mode = getMode();
+    // Ozone has no back-solve table: inverting the zero-order model is
+    // algebraic (Eavg = [O3]/(G*tau)), so there is nothing to bisect.
+    if (mode === "ozone") return;
     const reactor = readReactorInputs();
     const solver_settings = readSolverSettings();
     const c_c0_values = readCommaList("in-backsolve-values");
@@ -472,7 +611,10 @@
   // e.g. editing the back-solve C/C0 list never touches the sweep table, and
   // vice versa. Shared reactor/chemistry inputs feed both, since both
   // calculations read them.
-  const HEADLINE_SWEEP_ONLY_IDS = ["in-k", "in-Eavg", "in-measured", "in-eprime", "in-sweep-values"];
+  const HEADLINE_SWEEP_ONLY_IDS = [
+    "in-k", "in-Eavg", "in-measured", "in-eprime", "in-sweep-values",
+    "in-ozone-G", "in-ozone-Eavg", "in-ozone-kd",
+  ];
   const BACKSOLVE_ONLY_IDS = ["in-backsolve-values", "in-backsolve-eavg-values"];
   const SHARED_IDS = [
     "in-L", "in-a", "in-Q", "in-mu", "in-rho", "in-D",

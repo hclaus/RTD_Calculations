@@ -1,8 +1,8 @@
-<title>RTD Reactor Calculator — CORRECTED model</title>
+<title>RTD Reactor Calculator — OZONE model</title>
 <link rel="stylesheet" href="/static/css/styles.css" />
 
 <header class="topbar">
-  <h1>RTD Reactor Calculator <span class="build-badge">CORRECTED model</span></h1>
+  <h1>RTD Reactor Calculator <span class="build-badge">OZONE model</span></h1>
   <nav>
     <a href="/" class="active">Calculator</a>
     <a href="/help">Help</a>
@@ -60,6 +60,7 @@
       <select id="in-calc-type">
         <option value="microbio" selected>Microbiological</option>
         <option value="chemical">Chemical</option>
+        <option value="ozone">Ozone generation</option>
       </select>
     </div>
 
@@ -111,7 +112,26 @@
       </div>
     </fieldset>
 
-    <details class="advanced">
+    <fieldset id="ozone-fieldset" class="hidden">
+      <legend>Ozone generation</legend>
+      <div class="field-row" data-var-id="G">
+        <label for="in-ozone-G">Generation rate (G)</label>
+        <input type="number" id="in-ozone-G" step="any" required />
+        <span class="units">ppb/hr per µW/cm²</span>
+      </div>
+      <div class="field-row" data-var-id="Eavg">
+        <label for="in-ozone-Eavg">Avg. fluence rate (E'avg)</label>
+        <input type="number" id="in-ozone-Eavg" step="any" required />
+        <span class="units">mW/cm²</span>
+      </div>
+      <div class="field-row" data-var-id="kd">
+        <label for="in-ozone-kd">Photolytic loss (kd, optional)</label>
+        <input type="number" id="in-ozone-kd" step="any" />
+        <span class="units">cm²/mJ</span>
+      </div>
+    </fieldset>
+
+    <details class="advanced" id="backsolve-input-details">
       <summary id="backsolve-summary">Calculate k from measured C/C0</summary>
       <div class="field-row">
         <label for="in-backsolve-values">C/C0 values (comma or space-separated; paste from Excel works)</label>
@@ -168,9 +188,13 @@
   <section class="panel" id="results">
     <h2>Results</h2>
     <div class="results-grid" id="headline-results">
-      <div class="result-item">
+      <div class="result-item" id="result-item-c-c0">
         <span class="result-label">C/C0 (reactor)</span>
         <span class="result-value" id="res-c-c0">—</span>
+      </div>
+      <div class="result-item hidden" id="result-item-ozone">
+        <span class="result-label" data-var-id="ozone_ppb">Outlet [O₃]</span>
+        <span class="result-value" id="res-ozone">—</span>
       </div>
       <div class="result-item" id="result-item-est-k">
         <span class="result-label" id="res-est-k-label">Estimated k</span>
@@ -206,15 +230,15 @@
         <span class="result-label" data-var-id="theta">Radial mixing (θ)</span>
         <span class="result-value" id="res-theta">—</span>
       </div>
-      <div class="result-item">
+      <div class="result-item" id="result-item-da">
         <span class="result-label" data-var-id="Da">Damköhler (Da)</span>
         <span class="result-value" id="res-da">—</span>
       </div>
-      <div class="result-item">
+      <div class="result-item" id="result-item-correction">
         <span class="result-label" data-var-id="correction_factor">Diffusion correction</span>
         <span class="result-value" id="res-correction">—</span>
       </div>
-      <div class="result-item">
+      <div class="result-item" id="result-item-c-c0-uncorrected">
         <span class="result-label">C/C0 before correction</span>
         <span class="result-value" id="res-c-c0-uncorrected">—</span>
       </div>
@@ -222,7 +246,7 @@
       <hr class="divider" />
     </div>
 
-    <div class="section-header">
+    <div class="section-header" id="backsolve-section-header">
       <h2 id="backsolve-section-title">Calculated k (cm²/mJ) from C/C0 and Eavg values</h2>
       <button type="button" id="backsolve-calc-btn" class="btn-primary btn-small">Calculate</button>
     </div>
@@ -250,7 +274,7 @@
       <summary>Show table</summary>
       <div style="overflow-x:auto;">
         <table class="data-table" id="sweep-table">
-          <thead>
+          <thead id="sweep-table-head">
             <tr>
               <th>Eavg</th>
               <th>Davg</th>
@@ -268,7 +292,7 @@
 
   <!-- RIGHT: chart -->
   <section class="panel" id="chart">
-    <h2>RTD vs. well-mixed survival</h2>
+    <h2 id="chart-title">RTD vs. well-mixed survival</h2>
     <div id="chart-container"></div>
   </section>
 </main>

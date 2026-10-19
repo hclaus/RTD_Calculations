@@ -337,3 +337,48 @@
     has no effect (the aerosol case); smaller values mean diffusion narrows
     the residence time distribution and increases predicted inactivation.
   methodology_section_anchor: diffusion-correction
+
+- id: G
+  symbol: "G"
+  label: "Ozone generation rate"
+  units: "ppb/hr per (µW/cm²)"
+  category: ozone
+  default: 10.5
+  tooltip: "Measured 222 nm ozone generation rate, normalised to fluence rate."
+  description: >
+    The measured rate at which the 222 nm source creates ozone from
+    atmospheric O₂, normalised to fluence rate. Internally converted to
+    ppb/s per (mW/cm²) by the factor 1000/3600, giving 2.9167 for the
+    measured 10.5. Because O₂ is in vast excess, production is zero-order
+    and the outlet concentration is simply G·Ē·τ.
+  methodology_section_anchor: ozone-generation
+
+- id: kd
+  symbol: "k_d"
+  label: "Photolytic ozone-loss constant"
+  units: "cm²/mJ"
+  category: ozone
+  default: 0.0
+  tooltip: "Optional first-order loss of ozone to 222 nm photolysis. 0 disables it."
+  description: >
+    Optional first-order destruction of ozone by the same 222 nm photons
+    that create it. Defaults to 0 because O₃ photolysis at 222 nm is
+    largely a null cycle (the O atom recombines within microseconds) and
+    the measured G is almost certainly already a net rate, so enabling
+    this would double-count. When non-zero it makes the kinetics
+    non-linear and the RTD becomes relevant again.
+  methodology_section_anchor: ozone-generation
+
+- id: ozone_ppb
+  symbol: "[O₃]"
+  label: "Outlet ozone concentration"
+  units: "ppb"
+  category: ozone
+  tooltip: "Single-pass mixed-cup outlet concentration, [O₃] = G·Ē·τ."
+  description: >
+    The mixed-cup (flux-weighted) ozone concentration leaving the reactor
+    after one pass. For zero-order production this equals G·Ē·τ exactly,
+    independent of the RTD shape and of molecular diffusion. Note that the
+    radial profile is strongly non-uniform even though this average is
+    not, and that total production G·Ē·V is independent of flow rate.
+  methodology_section_anchor: ozone-generation

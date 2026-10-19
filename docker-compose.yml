@@ -1,11 +1,13 @@
 services:
-  # CORRECTED model build: flux-weighted RTD + molecular-diffusion
-  # correction. Serves on 8001 both inside and outside the container, so
-  # it can run alongside the legacy build (8000) without any port
-  # translation to get confused about.
-  rtd-calculator-corrected:
+  # OZONE build: corrected model (flux-weighted RTD + diffusion
+  # correction) plus the zero-order ozone-generation mode. Serves on 8002
+  # both inside and outside the container, so it runs alongside the legacy
+  # build (8000) and the corrected build (8001) with no port translation
+  # to get confused about. Each of the three is a SEPARATE deployment --
+  # separate branch, separate container -- not three ports on one app.
+  rtd-calculator-ozone:
     build: .
-    container_name: rtd-calculator-corrected
+    container_name: rtd-calculator-ozone
     ports:
-      - "8001:8001"
+      - "8002:8002"
     restart: unless-stopped

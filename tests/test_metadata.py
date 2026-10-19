@@ -13,7 +13,9 @@ def test_variables_yaml_parses_and_validates():
     assert len(variables) > 0
     for v in variables:
         assert v.id
-        assert v.category in {"shared", "microbiological", "solver_settings", "derived", "chemical"}
+        assert v.category in {
+            "shared", "microbiological", "solver_settings", "derived", "chemical", "ozone",
+        }
 
 
 def test_no_duplicate_ids():

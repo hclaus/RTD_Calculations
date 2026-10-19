@@ -6,10 +6,14 @@
     shared: "Shared reactor & flow inputs",
     microbiological: "Microbiological inputs",
     chemical: "Chemical (actinometry) inputs",
+    ozone: "Ozone generation inputs",
     solver_settings: "Solver settings",
     derived: "Derived / computed results",
   };
-  const CATEGORY_ORDER = ["shared", "microbiological", "chemical", "solver_settings", "derived"];
+  // Must stay in sync with CATEGORY_LABELS above and with the whitelist in
+  // tests/test_metadata.py -- a category missing from either map here is
+  // silently dropped from the rendered glossary.
+  const CATEGORY_ORDER = ["shared", "microbiological", "chemical", "ozone", "solver_settings", "derived"];
 
   async function renderGlossary() {
     let variables;

@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="/static/css/styles.css" />
 
 <header class="topbar">
-  <h1>RTD Reactor Calculator <span class="build-badge">CORRECTED model</span></h1>
+  <h1>RTD Reactor Calculator <span class="build-badge">OZONE model</span></h1>
   <nav>
     <a href="/">Calculator</a>
     <a href="/help" class="active">Help</a>
@@ -300,6 +300,93 @@ Up = h · c / λ</pre>
       above — editing molecular weight recomputes it automatically, and the field
       remains editable if you have a literature diffusivity value you'd rather use
       directly.
+    </p>
+  </section>
+
+  <section id="ozone-generation">
+    <h2>Ozone generation</h2>
+    <p>
+      The 222 nm source does not only destroy challenge agents — it also <em>creates</em>
+      ozone from atmospheric O₂. This mode predicts how much leaves the reactor in a
+      single pass, from a measured, fluence-normalised generation rate
+      <code>G</code> (default 10.5 ppb/hr per µW/cm², converted internally to
+      2.9167 ppb/s per mW/cm²).
+    </p>
+
+    <h3>Why the RTD cancels</h3>
+    <p>
+      Inactivation is <strong>first order</strong> in the thing being destroyed, so its
+      batch solution is an exponential and the whole shape of the residence time
+      distribution matters. Ozone production is <strong>zero order</strong>: O₂ is in vast
+      excess and a few tens of ppb of product never depletes it, so
+      <code>d[O₃]/dt = G·Ē</code> and the batch solution is simply
+      <code>[O₃](t) = G·Ē·t</code> — <em>linear</em> in time.
+    </p>
+    <p>
+      Feeding a linear function through the Segregated Flow Model picks out only the
+      <strong>first moment</strong> of the RTD, which is the mean residence time:
+    </p>
+    <p class="formula">
+      [O₃]<sub>out</sub> = ∫ G·Ē·t · E(t) dt = G·Ē·⟨t⟩ = <strong>G·Ē·τ</strong>
+    </p>
+    <p>
+      Every other feature of the distribution integrates away. Two RTDs with the same
+      mean give identical ozone, so the area-vs-flux weighting question that dominates
+      the inactivation model is irrelevant here — with one important exception noted
+      below.
+    </p>
+
+    <h3>Diffusion cancels too</h3>
+    <p>
+      Integrating the advection–diffusion equation over the tube cross-section, the
+      diffusive term becomes a boundary integral that vanishes for an inert wall,
+      leaving <code>d(Q·C<sub>cup</sub>)/dx = G·Ē·A</code> and therefore
+      <code>[O₃] = G·Ē·V/Q = G·Ē·τ</code> exactly, for <em>any</em> diffusivity. The
+      physical statement is just conservation: every molecule created inside the tube
+      must eventually leave it. Diffusion rearranges ozone radially but neither creates
+      nor destroys it.
+    </p>
+
+    <h3>The radial profile is <em>not</em> uniform</h3>
+    <p>
+      This is worth stressing, because it is counter-intuitive. Without diffusion each
+      streamline accumulates ozone for its own residence time, so
+      <code>c(r) = G·Ē·L/u(r)</code>, which <strong>diverges at the wall</strong>: the
+      centreline carries exactly half the mean, while fluid at r/a = 0.999 carries
+      250× the mean. The slow-moving boundary layer really is loaded with ozone.
+    </p>
+    <p>
+      The mixed-cup average survives this because the velocity cancels: wall fluid
+      carries more ozone (∝ 1/u) but delivers proportionally less of itself (∝ u), so
+      the product c(r)·u(r) is constant across the whole radius. A downstream sensor
+      measures that flux-weighted average, not the area average — and the area average
+      of the same profile diverges.
+    </p>
+
+    <h3>Output is independent of flow rate</h3>
+    <p>
+      Total production is <code>G·Ē·V</code>, set by the illuminated volume alone.
+      Raising the flow rate lowers the per-pass concentration but delivers exactly the
+      same total ozone downstream. The levers that actually reduce ozone are lamp
+      output, illuminated volume, or downstream destruction — not fan speed.
+    </p>
+
+    <h3>Optional photolytic loss</h3>
+    <p>
+      Supplying a non-zero <code>k<sub>d</sub></code> adds first-order destruction of
+      ozone by the same 222 nm photons. That makes the kinetics non-linear again, so
+      the RTD genuinely re-enters and the result becomes
+      <code>[O₃] = (G/k<sub>d</sub>)·(1 − S)</code>, where S is exactly the survival
+      integral used by the other two modes. It defaults to zero because O₃ photolysis
+      at 222 nm is largely a null cycle (O₃ + hν → O₂ + O, then O + O₂ + M → O₃ within
+      microseconds) and the measured G is almost certainly already a net rate.
+    </p>
+    <p>
+      Note that the tabulated diffusion correction is <strong>not</strong> applied to
+      this term. The correction multiplies the survival S, but ozone depends on
+      (1 − S); at the Damköhler numbers involved (~0.02) that inverts into roughly a
+      45× amplification of any error in the tabulated factor, which the table's ~0.2 %
+      accuracy cannot support.
     </p>
   </section>
 

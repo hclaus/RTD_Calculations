@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # the solver bracket here, so these are raised accordingly.
     default_back_solve_eavg_c_c0_values: list[float] = [0.97, 0.94, 0.91, 0.88]
 
+    # Ozone mode. 10.5 ppb/hr/(uW/cm^2) is the project's measured 222 nm
+    # generation rate, normalised to fluence rate. kd (photolytic loss)
+    # defaults OFF: O3 photolysis at 222 nm is largely a null cycle, and
+    # the measured G is almost certainly already a net rate, so enabling it
+    # by default would double-count. See 'Ozone generation.md'.
+    default_ozone_generation_rate: float = 10.5
+    default_ozone_kd: float = 0.0
+
     # Standard pipe-flow Reynolds-number regime thresholds.
     re_laminar_max: float = 2300.0
     re_turbulent_min: float = 4000.0
